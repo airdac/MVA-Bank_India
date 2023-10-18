@@ -10,6 +10,8 @@ library(tidyverse)
 library(skimr)
 library(VIM)
 library(mice)
+library(cluster)
+require(StatMatch)
 ```
 
 # Context
@@ -43,10 +45,7 @@ summary(data)
 ### Transform variables 
 First, we have an age variable (age when they applied to the loan) that is a negative number and computed as the days spent in their lifetime, we want to save the age they had when they applied to the loan in years. We created the new variable transformed_age. 
 ```{r}
-data <- data %>%
-  mutate(transformed_age = floor(abs(age) / 365))
-
-data[c("age","transformed_age")]
+data$age<-floor(abs(data$age) / 365)
 ```
 
 Second, we transform the job_duration variable (#days they worked when they applied to the loan). Also calculated with days. We think it is more understandable to see the years. 
@@ -109,7 +108,7 @@ Percentage of missing values:
 ```
 
 We were not able to install the BaylorEdPsych package, so we copied the function here:
-```{r}
+```{r, include=FALSE}
 LittleMCAR<-function(x){
  if (!require(mvnmle)) 
 	stop("You must have mvnmle installed to use LittleMCAR")
@@ -256,10 +255,7 @@ knn_imputed <- kNN(numerical_data)
 marginplot(knn_imputed[, c("price", "job_duration")])
 ```
 MIMI function for numerical imputations
-```{r}
-library(cluster)
-require(StatMatch)
-
+```{r, include=FALSE}
 #assume missings represented with NA
 uncompleteVar<-function(vector){any(is.na(vector))}
 
@@ -353,4 +349,37 @@ mimi_imputed$imputation
 mimi_imputed$imputedData
 ```
 
+```{r}
+densityplot(data$price, col = "blue", main = "Density Plot of Price")
+densityplot(mimi_imputed$imputedData$price, col = "blue", add = TRUE)
+```
+```{r}
+densityplot(mimi_imputed$imputedData$job_duration, col = "blue", add = TRUE)
+densityplot(data$job_duration, col = "blue", add = TRUE)
+
+
+```
+```{r}
+densityplot(mimi_imputed$imputedData$n_enquiries, col = "blue", add = TRUE)
+densityplot(data$n_enquiries, col = "blue", add = TRUE)
+```
+```{r}
+densityplot(completeData$job_duration, col = "blue", add = TRUE)
+densityplot(data$job_duration, col = "blue", add = TRUE)
+```
+```{r}
+densityplot(completeData$n_enquiries, col = "blue", add = TRUE)
+densityplot(data$n_enquiries, col = "blue", add = TRUE)
+```
+```{r}
+densityplot(completeData$price, col = "blue", add = TRUE)
+densityplot(data$price, col = "blue", add = TRUE)
+```
+We decided to use the numerical imputations from mice
+```{r}
+data$age <- NULL
+columns_to_replace <- c("price", "n_enquiries", "job_duration")
+data[columns_to_replace] <- completeData[columns_to_replace]
+head(data)
+```
 
