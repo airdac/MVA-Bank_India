@@ -16,7 +16,7 @@ data <- read.csv("reduced_data_sample.csv")
 ```
 # Data Exploratory
 # Preprocessing
-### Rename variables
+### Rename the features to a understandable name
 ```{r}
 names(data)
 names(data) <- c("id", "target", "contract", "gender", "car", "n_child",
