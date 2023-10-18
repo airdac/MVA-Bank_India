@@ -229,4 +229,128 @@ imputed_Data$imp$price
 # get complete data ( 3nd out of 5)
 completeData <- mice::complete(imputed_Data, 3)
 ```
+```{r}
+stripplot(imputed_Data, job_duration, pch = 19, xlab = "Imputation number")
+
+```
+```{r}
+stripplot(imputed_Data, n_enquiries, pch = 19)
+
+```
+
+
+```{r}
+stripplot(imputed_Data, pch = 10, cex = 1.2)
+```
+```{r}
+densityplot(imputed_Data)
+```
+
+
+knn for numerical imputations
+```{r}
+knn_imputed <- kNN(numerical_data)
+```
+
+```{r}
+marginplot(knn_imputed[, c("price", "job_duration")])
+```
+MIMI function for numerical imputations
+```{r}
+library(cluster)
+require(StatMatch)
+
+#assume missings represented with NA
+uncompleteVar<-function(vector){any(is.na(vector))}
+
+Mode <- function(x) 
+{
+  x<-as.factor(x)
+  maxV<-which.max(table(x))
+  return(levels(x)[maxV])
+}
+
+
+
+MiMMi <- function(data, priork=-1)
+{
+  #Identify columns without missings
+  colsMiss<-which(sapply(data, uncompleteVar))
+  if(length(colsMiss)==0){
+    print("Non missing values found")
+    out<-dd
+    }else{
+    K<-dim(data)[2]
+    colsNoMiss<-setdiff(c(1:K),as.vector(colsMiss))
+  
+    #cluster with complete data
+    dissimMatrix <- daisy(data[,colsNoMiss], metric = "gower", stand=TRUE)
+    distMatrix<-dissimMatrix^2
+  
+    hcdata<-hclust(distMatrix, method = "ward.D2")
+    plot(hcdata)
+    nk<-2
+    if(priork==-1){
+      print("WARNING: See the dendrogramm and ZOOM if required")
+      print("and enter a high number of clusters")
+      nk<-readline("(must be a positive integer). k: ")
+      nk<-as.integer(nk)
+    }else{nk<-priork}
+  
+    partition<-cutree(hcdata, nk)
+
+    CompleteData<-data
+    #nomes cal per tenir tra?a de com s'ha fet la substituci?
+    newCol<-K+1
+    CompleteData[,newCol]<-partition
+    names(CompleteData)[newCol]<-"ClassAux"
+  
+    setOfClasses<-as.numeric(levels(as.factor(partition)))
+    imputationTable<-data.frame(row.names=setOfClasses)
+    p<-1
+  
+    for(k in colsMiss)
+    {
+       #Files amb valors utils
+       rowsWithFullValues<-!is.na(CompleteData[,k])
+    
+       #calcular valors d'imputacio
+       if(is.numeric(CompleteData[,k]))
+       {
+          imputingValues<-aggregate(CompleteData[rowsWithFullValues,k], by=list(partition[rowsWithFullValues]), FUN=mean)
+       }else{
+          imputingValues<-aggregate(CompleteData[rowsWithFullValues,k], by=list(partition[rowsWithFullValues]), FUN=Mode)
+       }
+    
+       #Impute
+    
+       for(c in setOfClasses)
+       {
+          CompleteData[is.na(CompleteData[,k]) & partition==c,k]<-imputingValues[c,2]
+       }
+    
+       #Imputation Table
+       imputationTable[,p]<-imputingValues[,2]
+       names(imputationTable)[p]<-names(data)[k]
+       p<-p+1
+    }
+    
+    rownames(imputationTable)<-paste0("c", 1:nk)
+    out<-new.env()
+    out$imputedData<-CompleteData
+    out$imputation<-imputationTable
+  }
+  return(out)
+}
+```
+```{r}
+mimi_imputed<-MiMMi(numerical_data)
+```
+```{r}
+mimi_imputed$imputation
+```
+```{r}
+mimi_imputed$imputedData
+```
+
 
