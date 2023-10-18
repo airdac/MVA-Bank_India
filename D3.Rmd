@@ -1,0 +1,76 @@
+---
+title: "D3"
+author: "Alícia Chimeno Sarabia"
+date: "2023-10-18"
+output: html_document
+---
+```{r Libraries, include=FALSE}
+library(dplyr)
+library(tidyverse)
+```
+
+# Context
+# Read data
+```{r}
+data <- read.csv("reduced_data_sample.csv")
+```
+# Data Exploratory
+# Preprocessing
+### Rename variables
+```{r}
+names(data)
+names(data) <- c("id", "target", "contract", "gender", "car", "n_child",
+                 "income", "credit", "loan", "price", "job_stat", "studies",
+                 "family", "house", "age", "job_duration", "occupation",
+                 "job_type", "n_enquiries", "companion")
+names(data)
+```
+
+### Assign proper type
+```{r}
+# convert  numerical-> as factor
+data$target <- factor(data$target, levels = c(0,1), labels = c("payed","overdue"))
+# convert character -> as factor:
+char_cols <- which(sapply(data, is.character))
+data[, char_cols] <- lapply(data[, char_cols], as.factor) 
+str(data)
+summary(data)
+```
+
+### Transform variables 
+First, we have an age variable (age when they applied to the loan) that is a negative number and computed as the days spent in their lifetime, we want to save the age they had when they applied to the loan in years. We created the new variable transformed_age. 
+```{r}
+data <- data %>%
+  mutate(transformed_age = floor(abs(age) / 365))
+
+data[c("age","transformed_age")]
+```
+
+Second, we transform the job_duration variable (#days they worked when they applied to the loan). Also calculated with days. We think is more understandable to see the years. 
+
+When we have a glimpse of the values, we can see an error in the data set. The value 365243 clearly is a wrong value bc equivalent to 1000 years worked (and+). We will transforme it as a missing value. 
+We also rewrite the missing values of the factor variables as "Unknown". 
+```{r}
+data$job_duration
+data$job_duration[which(data$job_duration == 365243)] <- NA
+data$job_duration <- (abs(data$job_duration) / 365) # job duration en anys
+data$job_type[which(data$job_type == "XNA")] <- "Unknown"
+
+```
+
+### Check if the values are all correctly saved and the NAs
+We assign to the NA's in factor variables as "Unknown". 
+```{r}
+summary(data)
+```
+The variables that have (other) : occupation, job_type,companion: means that there are ++ classes. Let's explore them: 
+
+```{r}
+names(table(data$occupation))
+data <- data %>%
+  mutate_all(~replace(., . == "XNA", "Unknown"))
+print(unique(data$occupation))
+names(table(data$job_type))
+names(table(data$companion))
+```
+
