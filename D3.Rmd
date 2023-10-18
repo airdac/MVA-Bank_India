@@ -46,31 +46,62 @@ data <- data %>%
 data[c("age","transformed_age")]
 ```
 
-Second, we transform the job_duration variable (#days they worked when they applied to the loan). Also calculated with days. We think is more understandable to see the years. 
+Second, we transform the job_duration variable (#days they worked when they applied to the loan). Also calculated with days. We think it is more understandable to see the years. 
 
-When we have a glimpse of the values, we can see an error in the data set. The value 365243 clearly is a wrong value bc equivalent to 1000 years worked (and+). We will transforme it as a missing value. 
+When we have a glimpse of the values, we can see an error in the data set. The value 365243 clearly is a wrong value because it is equivalent to 1000 years worked and it is found in many records. We will transform it to a missing value. 
 We also rewrite the missing values of the factor variables as "Unknown". 
 ```{r}
-data$job_duration
+# data$job_duration
 data$job_duration[which(data$job_duration == 365243)] <- NA
-data$job_duration <- (abs(data$job_duration) / 365) # job duration en anys
+data$job_duration <- (abs(data$job_duration) / 365) # job duration in years
+data$job_type <- as.character(data$job_type)
 data$job_type[which(data$job_type == "XNA")] <- "Unknown"
+data$job_type <- as.factor(data$job_type)
+
+data$gender <- as.character(data$gender)
+data$gender[which(data$gender == "XNA")] <- "Unknown"
+data$gender <- as.factor(data$gender)
+
+data$occupation <- as.character(data$occupation)
+data$occupation[which(data$occupation == "")] <- "Unknown"
+data$occupation <- as.factor(data$occupation)
+
+data$companion <- as.character(data$companion)
+data$companion[which(data$companion == "")] <- "Unknown"
+data$companion <- as.factor(data$companion)
 
 ```
 
-### Check if the values are all correctly saved and the NAs
+### Check if the values and NA's are correctly saved
 We assign to the NA's in factor variables as "Unknown". 
 ```{r}
 summary(data)
 ```
-The variables that have (other) : occupation, job_type,companion: means that there are ++ classes. Let's explore them: 
+The variables that have (other) : occupation, job_type,companion: means that there are more classes. Let's explore them: 
 
 ```{r}
 names(table(data$occupation))
-data <- data %>%
-  mutate_all(~replace(., . == "XNA", "Unknown"))
-print(unique(data$occupation))
+# What does the following code do?
+# data <- data %>%
+#  mutate_all(~replace(., . == "XNA", "Unknown"))
+# print(unique(data$occupation))
 names(table(data$job_type))
 names(table(data$companion))
+```
+# NA's + Unknowns ratio
+We calculated the percentage of missing values
+```{r}
+missing.values.data <-  as.data.frame(skimr::skim(data))
+na_perc = sum(missing.values.data$n_missing) / (ncol(data) * nrow(data)) * 100
+unknown_count = sum(data$job_type == "Unknown", na.rm = T) + sum(data$gender == "Unknown") +
+  sum(data$occupation == "Unknown") + sum(data$companion == "Unknown")
+unknown_perc = unknown_count / (ncol(data) * nrow(data)) * 100
+missing_perc = na_perc + unknown_perc
+```
+
+Attention, there is only one numerical variable with missing values: 'n_enquiries'.
+Percentage of missing values:
+```{r}
+689/nrow(data)*100
 ```
 
