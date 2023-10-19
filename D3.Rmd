@@ -382,7 +382,7 @@ data[columns_to_replace] <- completeData[columns_to_replace]
 head(data)
 ```
 
-
+Now we did a PCA only for numerical variables to see how variables are related
 
 ```{r}
 numeriques<-which(sapply(data,is.numeric))
@@ -526,8 +526,6 @@ axis(side=4, pos= 0, labels = F, col="cyan")
 ```
 
 
-
-
 ```{r}
 plot(Psi[,eje1],Psi[,eje2],type="n", xlim = c(-1,1), ylim = c(-1, 1))
 axis(side=1, pos= 0, labels = F)
@@ -539,6 +537,8 @@ text(X,Y,labels=etiq,col="darkblue", cex=0.7)
 ```
 
 ```{r}
+# Zoom to see the aggregated variables among the negative first component
+
 plot(Psi[,eje1],Psi[,eje2],type="n", xlim = c(-1,-0.7), ylim = c(-0.2, 0.2))
 axis(side=1, pos= 0, labels = F)
 axis(side=3, pos= 0, labels = F)
@@ -549,6 +549,8 @@ text(X,Y,labels=etiq,col="darkblue", cex=0.7)
 ```
 
 ```{r}
+# Check that there are not more variables aggregated close to "loan"
+
 plot(Psi[,eje1],Psi[,eje2],type="n", xlim = c(-1,-0.85), ylim = c(-0.1, 0))
 axis(side=1, pos= 0, labels = F)
 axis(side=3, pos= 0, labels = F)
@@ -557,4 +559,158 @@ axis(side=4, pos= 0, labels = F)
 arrows(ze, ze, X, Y, length = 0.07,col="blue")
 text(X,Y,labels=etiq,col="darkblue", cex=0.7)
 ```
+
+ Afterwards, categorical variables are projected into PCA to have a better 
+ understanding of the factorial plains
+
+```{r}
+# Adding the target variable (index=2)
+varcat=factor(data[,2])
+plot(Psi[,1],Psi[,2], pch=c(1,20) [varcat], col=c("lightgreen", "red") [varcat])
+axis(side=1, pos= 0, labels = F, col="darkgray")
+axis(side=3, pos= 0, labels = F, col="darkgray")
+axis(side=2, pos= 0, labels = F, col="darkgray")
+axis(side=4, pos= 0, labels = F, col="darkgray")
+legend("bottomleft",levels(factor(varcat)),pch=c(1,20),col=c(1,2), cex=0.6)
+
+```
+```{r}
+# From the previous plot, check where the centroids of "paid" and "overdue" are
+varcat<-factor(data[,2]) 
+fdic1 = tapply(Psi[,eje1],varcat,mean)
+fdic2 = tapply(Psi[,eje2],varcat,mean) 
+
+plot(Psi[,eje1],Psi[,eje2],type="n")
+axis(side=1, pos= 0, labels = F, col="cyan")
+axis(side=3, pos= 0, labels = F, col="cyan")
+axis(side=2, pos= 0, labels = F, col="cyan")
+axis(side=4, pos= 0, labels = F, col="cyan")
+
+text(fdic1,fdic2,labels=levels(varcat), col=c("green", "red"), 
+     cex=0.7)
+```
+
+```{r}
+dcat <- c(2:5,11:14,17:18,20)
+colors<-rainbow(length(dcat))
+
+plot(Psi[,eje1],Psi[,eje2], type = "n")
+axis(side=1, pos= 0, labels = F, col="cyan")
+axis(side=3, pos= 0, labels = F, col="cyan")
+axis(side=2, pos= 0, labels = F, col="cyan")
+axis(side=4, pos= 0, labels = F, col="cyan")
+
+# Loop to add all categories 
+
+c <- 1
+for(k in dcat){
+  seguentColor<-colors[c]
+  fdic1 = tapply(Psi[,eje1],data[,k],mean)
+  fdic2 = tapply(Psi[,eje2],data[,k],mean) 
+  
+  text(fdic1,fdic2,labels=levels(factor(data[,k])),col=seguentColor, cex=0.6)
+  c<-c+1
+}
+legend("bottomleft",names(data)[dcat],pch=1,col=colors, cex=0.6)
+
+```
+
+```{r}
+# A zoom is required 
+dcat <- c(2:5,11:14,17:18,20)
+colors<-rainbow(length(dcat))
+
+plot(Psi[,eje1],Psi[,eje2], type = "n", xlim = c(-3,2), ylim = c(-2,3))
+axis(side=1, pos= 0, labels = F, col="cyan")
+axis(side=3, pos= 0, labels = F, col="cyan")
+axis(side=2, pos= 0, labels = F, col="cyan")
+axis(side=4, pos= 0, labels = F, col="cyan")
+
+# Loop to add all categories 
+
+c <- 1
+for(k in dcat){
+  seguentColor<-colors[c]
+  fdic1 = tapply(Psi[,eje1],data[,k],mean)
+  fdic2 = tapply(Psi[,eje2],data[,k],mean) 
+  
+  text(fdic1,fdic2,labels=levels(factor(data[,k])),col=seguentColor, cex=0.6)
+  c<-c+1
+}
+legend("bottomleft",names(data)[dcat],pch=1,col=colors, cex=0.6)
+
+```
+```{r}
+# As there are too much variables its important to do several maps that will 
+# share the same length of the axis to be comparable visually
+# Note: There is a bug in the visualization. The last plot seams smaller
+# but when you save the figure all of them have the same size
+
+groups <- list(c(2:5), c(11:13), 14, 17, 18, 20)
+
+for(j in 1:length(groups)){
+  colors <- rainbow(length(groups))
+  
+  a = plot(Psi[,eje1],Psi[,eje2], type = "n", xlim = c(-3,2), ylim = c(-2,3))
+  axis(side=1, pos= 0, labels = F, col="cyan")
+  axis(side=3, pos= 0, labels = F, col="cyan")
+  axis(side=2, pos= 0, labels = F, col="cyan")
+  axis(side=4, pos= 0, labels = F, col="cyan")
+    
+    # Loop to add all categories of this group
+    c <- 1
+    for(k in groups[[j]]){
+      seguentColor<-colors[c]
+      fdic1 = tapply(Psi[,eje1],data[,k],mean)
+      fdic2 = tapply(Psi[,eje2],data[,k],mean) 
+      
+      text(fdic1,fdic2,labels=levels(factor(data[,k])),col=seguentColor, 
+           cex=0.6)
+      c <- c+1
+    }
+  legend("bottomleft",names(data)[groups[[j]]],pch=1,col=colors, cex=0.6)
+}
+
+
+```
+```{r}
+# Numerical variables and centroids of desired categorical variables
+# Several maps are created to see relations
+
+groups <- list(c(2:5), c(11:13))
+
+for(j in 1:length(groups)){
+  colors <- rainbow(length(groups))
+  
+  a = plot(Psi[,eje1],Psi[,eje2], type = "n", xlim = c(-1,2), ylim = c(-1,3))
+  axis(side=1, pos= 0, labels = F, col="cyan")
+  axis(side=3, pos= 0, labels = F, col="cyan")
+  axis(side=2, pos= 0, labels = F, col="cyan")
+  axis(side=4, pos= 0, labels = F, col="cyan")
+  
+  #add projections of numerical variables in background
+  arrows(ze, ze, X, Y, length = 0.07,col="lightgray")
+  text(X,Y,labels=etiq,col="gray", cex=0.7)
+    
+    # Loop to add all categories of this group
+    c <- 1
+    for(k in groups[[j]]){
+      seguentColor<-colors[c]
+      fdic1 = tapply(Psi[,eje1],data[,k],mean)
+      fdic2 = tapply(Psi[,eje2],data[,k],mean) 
+      
+      text(fdic1,fdic2,labels=levels(factor(data[,k])),col=seguentColor, 
+           cex=0.6)
+      c <- c+1
+    }
+  legend("bottomleft",names(data)[groups[[j]]],pch=1,col=colors, cex=0.6)
+}
+
+```
+
+
+# Outlier detection 
+use Mahalanobis distance with principal component analysis
+
+
 
