@@ -1,3 +1,8 @@
+---
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
 ```{r Libraries, include=FALSE}
 library(dplyr)
 library(tidyverse)
@@ -35,6 +40,20 @@ data[, char_cols] <- lapply(data[, char_cols], as.factor)
 str(data)
 summary(data)
 ```
+
+
+### Rename the Categorical feature in a shorter name.
+```{r}
+data$family <- fct_recode(data$family,  "single" = "Single / not married", "divorce" = "Separated")
+data$house <- fct_recode(data$house, "apartment" = "House / apartment", "Municipal apart." = "Municipal apartment", "Rented apart."="Rented apartment", "Office apart."="Office apartment", "Co-op apart."="Co-op apartment")
+data$occupation <- fct_recode(data$occupation, "High-tech staff" = "High skill tech staff", "Medic" = "Medicine staff", "Chef" = "Cooking staff", "Security" = "Security staff", "Waiters staff" = "Waiters/barmen staff")
+data$companion <- fct_recode(data$companion, "partner" = "Spouse, partner")
+data$studies <- fct_recode(data$studies, "Secondary/special" = "Secondary / secondary special")
+
+```
+
+
+### Chech if it's possible to colapse the organization type into a single variable.
 
 ### Transform variables 
 First, we have an age variable (age when they applied to the loan) that is a negative number and computed as the days spent in their lifetime, we want to save the age they had when they applied to the loan in years. We created the new variable transformed_age. 
