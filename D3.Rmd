@@ -31,6 +31,17 @@ names(data) <- c("id", "target", "contract", "gender", "car", "n_child",
 names(data)
 ```
 
+### Rename the Categorical feature in a shorter name.
+```{r}
+data$job_stat <- fct_recode(data$job_stat, "Commer. Assoc." = "Commercial associate")
+data$family <- fct_recode(data$family,  "single" = "Single / not married", "divorce" = "Separated")
+data$house <- fct_recode(data$house, "apartment" = "House / apartment", "Municipal apart." = "Municipal apartment", "Rented apart."="Rented apartment", "Office apart."="Office apartment", "Co-op apart."="Co-op apartment")
+data$occupation <- fct_recode(data$occupation, "High-tech stf" = "High skill tech staff", "Medic stf" = "Medicine staff", "Chef" = "Cooking staff", "Security" = "Security staff", "Waiters staff" = "Waiters/barmen staff", "Low-skill labor." = "Low-skill Laborers")
+data$companion <- fct_recode(data$companion, "partner" = "Spouse, partner", "Unaccompan." = "Unaccompanied", "Group of people" = "Group_people")
+data$studies <- fct_recode(data$studies, "Secondary" = "Secondary / secondary special", "Higher edu." = "Higher education")
+```
+
+
 ### Assign proper type
 ```{r}
 # convert  numerical-> as factor
@@ -41,6 +52,7 @@ data[, char_cols] <- lapply(data[, char_cols], as.factor)
 str(data)
 summary(data)
 ```
+
 
 ### Transform variables 
 First, we have an age variable (age when they applied to the loan) that is a negative number and computed as the days spent in their lifetime, we want to save the age they had when they applied to the loan in years. We created the new variable transformed_age. 
@@ -79,8 +91,8 @@ We assign to the NA's in factor variables as "Unknown".
 ```{r}
 summary(data)
 ```
-The variables that have (other) : occupation, job_type,companion: means that there are more classes. Let's explore them: 
 
+The variables that have (other) : occupation, job_type,companion: means that there are more classes. Let's explore them: 
 ```{r}
 names(table(data$occupation))
 # What does the following code do?
@@ -90,6 +102,7 @@ names(table(data$occupation))
 names(table(data$job_type))
 names(table(data$companion))
 ```
+
 # NA's + Unknowns ratio
 We calculated the percentage of missing values
 ```{r}

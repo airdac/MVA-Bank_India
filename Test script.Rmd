@@ -44,22 +44,33 @@ summary(data)
 
 ### Rename the Categorical feature in a shorter name.
 ```{r}
+data$job_stat <- fct_recode(data$job_stat, "Commer. Assoc." = "Commercial associate")
 data$family <- fct_recode(data$family,  "single" = "Single / not married", "divorce" = "Separated")
 data$house <- fct_recode(data$house, "apartment" = "House / apartment", "Municipal apart." = "Municipal apartment", "Rented apart."="Rented apartment", "Office apart."="Office apartment", "Co-op apart."="Co-op apartment")
-data$occupation <- fct_recode(data$occupation, "High-tech staff" = "High skill tech staff", "Medic" = "Medicine staff", "Chef" = "Cooking staff", "Security" = "Security staff", "Waiters staff" = "Waiters/barmen staff")
-data$companion <- fct_recode(data$companion, "partner" = "Spouse, partner")
-data$studies <- fct_recode(data$studies, "Secondary/special" = "Secondary / secondary special")
+data$occupation <- fct_recode(data$occupation, "High-tech stf" = "High skill tech staff", "Medic stf" = "Medicine staff", "Chef" = "Cooking staff", "Security" = "Security staff", "Waiters staff" = "Waiters/barmen staff", "Low-skill labor." = "Low-skill Laborers")
+data$companion <- fct_recode(data$companion, "partner" = "Spouse, partner", "Unaccompan." = "Unaccompanied", "Group of people" = "Group_people")
+data$studies <- fct_recode(data$studies, "Secondary" = "Secondary / secondary special", "Higher edu." = "Higher education")
 
 ```
 
 
-### Chech if it's possible to colapse the organization type into a single variable.
-### In the organization type, there is 4 variable with same name, but differente nº. e.g. for Industry, there is type 1 to 12. Maybe we can resume it.
-### For this purpose, I'll try to do the analysis to check the variance.
+### Check if it's possible to colapse the organization type into a single categoric variable.
+### In the organization type, there is 4 variable with same name, but differente type. e.g. for Industry, there is type 1 to 12. Maybe we can resume it.
+### For this purpose, I'll try to do the analysis the contingency table
 
 ```{r}
+industry <- paste("Industry: type", 1:12)
+
+job_industry <- data %>% filter(data$job_type %in% industry)
+job_industry <- droplevels(job_industry)
 
 
+con1 <- table(job_industry$job_type, job_industry$target)  
+con1
+
+mosaicplot(con1)  
+
+chisq.test(con1)
 
 ```
 
