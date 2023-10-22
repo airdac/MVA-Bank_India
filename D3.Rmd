@@ -4,6 +4,7 @@ author: "Alícia Chimeno Sarabia"
 date: "2023-10-18"
 output: html_document
 ---
+# Library importation
 ```{r Libraries, include=FALSE}
 library(dplyr)
 library(tidyverse)
@@ -11,19 +12,18 @@ library(skimr)
 library(VIM)
 library(mice)
 library(cluster)
+library(ggplot2)
+library(car)
 require(StatMatch)
 ```
 
-# Context
 # Read data
 ```{r}
 data <- read.csv("reduced_data_sample.csv")
 ```
-# Data Exploratory
-# Preprocessing
-### Rename the features to a understandable name
+
+# Rename the features to a naunced name
 ```{r}
-names(data)
 names(data) <- c("id", "target", "contract", "gender", "car", "n_child",
                  "income", "credit", "loan", "price", "job_stat", "studies",
                  "family", "house", "age", "job_duration", "occupation",
@@ -31,39 +31,40 @@ names(data) <- c("id", "target", "contract", "gender", "car", "n_child",
 names(data)
 ```
 
-### Rename the Categorical feature in a shorter name.
+# Rename the Categorical feature in a concise name
 ```{r}
 data$job_stat <- fct_recode(data$job_stat, "Commer. Assoc." = "Commercial associate")
 data$family <- fct_recode(data$family,  "single" = "Single / not married", "divorce" = "Separated")
 data$house <- fct_recode(data$house, "apartment" = "House / apartment", "Municipal apart." = "Municipal apartment", "Rented apart."="Rented apartment", "Office apart."="Office apartment", "Co-op apart."="Co-op apartment")
-data$occupation <- fct_recode(data$occupation, "High-tech stf" = "High skill tech staff", "Medic stf" = "Medicine staff", "Chef" = "Cooking staff", "Security" = "Security staff", "Waiters staff" = "Waiters/barmen staff", "Low-skill labor." = "Low-skill Laborers")
-data$companion <- fct_recode(data$companion, "partner" = "Spouse, partner", "Unaccompan." = "Unaccompanied", "Group of people" = "Group_people")
+data$occupation <- fct_recode(data$occupation, "High-tech stf" = "High skill tech staff", "Medic stf" = "Medicine staff", "Chef" = "Cooking staff", "Security" = "Security staff", "Waiters" = "Waiters/barmen staff", "Low-skill labor." = "Low-skill Laborers", "Private ser." = "Private service staff")
+data$companion <- fct_recode(data$companion, "Partner" = "Spouse, partner", "Unaccompan." = "Unaccompanied", "Group_people" = "Group of people")
 data$studies <- fct_recode(data$studies, "Secondary" = "Secondary / secondary special", "Higher edu." = "Higher education")
 ```
 
 
-### Assign proper type
+# Transform the numerical&characters into factor.
 ```{r}
-# convert  numerical-> as factor
+# convert numerical (0,1) -> as factor ("payed", "overdue")
 data$target <- factor(data$target, levels = c(0,1), labels = c("payed","overdue"))
 # convert character -> as factor:
 char_cols <- which(sapply(data, is.character))
 data[, char_cols] <- lapply(data[, char_cols], as.factor) 
+# Review if the transformation is executed properly
 str(data)
 summary(data)
 ```
 
 
-### Transform variables 
-First, we have an age variable (age when they applied to the loan) that is a negative number and computed as the days spent in their lifetime, we want to save the age they had when they applied to the loan in years. We created the new variable transformed_age. 
+# Transform variables 
+# First, we have an age feature (age when they applied to the loan) that is a negative number and computed as the days spent in their lifetime until the moment they apply for the loan. We want to transform it into years, for a more comprehensive purpuso.
 ```{r}
 data$age<-floor(abs(data$age) / 365)
 ```
 
-Second, we transform the job_duration variable (#days they worked when they applied to the loan). Also calculated with days. We think it is more understandable to see the years. 
+# Second, we transform the job_duration variable (#days they worked when they applied to the loan in the current work). Also calculated with days. We think it is more understandable to see the years. 
 
-When we have a glimpse of the values, we can see an error in the data set. The value 365243 clearly is a wrong value because it is equivalent to 1000 years worked and it is found in many records. We will transform it to a missing value. 
-We also rewrite the missing values of the factor variables as "Unknown". 
+# When we have a glimpse of the values, we can see an error in this feature. There is a value of 365243 days working, which cleary is a wrong value as it's equivalent to 1000 years worked. This value is recorded when the job_type equal to XNA, which means the applicant does not have any work.
+# So we also rewrite the missing values of the factor variables as "Unknown". 
 ```{r}
 # data$job_duration
 data$job_duration[which(data$job_duration == 365243)] <- NA
@@ -86,13 +87,13 @@ data$companion <- as.factor(data$companion)
 
 ```
 
-### Check if the values and NA's are correctly saved
-We assign to the NA's in factor variables as "Unknown". 
+# Check if the values and NA's are correctly saved
+# We assign to the NA's in factor variables as "Unknown". 
 ```{r}
 summary(data)
 ```
 
-The variables that have (other) : occupation, job_type,companion: means that there are more classes. Let's explore them: 
+# The variables that have (other) : occupation, job_type,companion: means that there are more classes. Let's explore them: 
 ```{r}
 names(table(data$occupation))
 # What does the following code do?
@@ -103,8 +104,7 @@ names(table(data$job_type))
 names(table(data$companion))
 ```
 
-# NA's + Unknowns ratio
-We calculated the percentage of missing values
+# We calculated the percentage of missing values which is NA's + Unknowns ratio
 ```{r}
 missing.values.data <-  as.data.frame(skimr::skim(data))
 na_perc = sum(missing.values.data$n_missing) / (ncol(data) * nrow(data)) * 100
@@ -114,13 +114,13 @@ unknown_perc = unknown_count / (ncol(data) * nrow(data)) * 100
 missing_perc = na_perc + unknown_perc
 ```
 
-Attention, there is only one numerical variable with missing values: 'n_enquiries'.
-Percentage of missing values:
+# Attention, there is only one numerical variable with missing values: 'n_enquiries'. Percentage of missing values:
+# What the purpose of this line???
 ```{r}
 689/nrow(data)*100
 ```
 
-We were not able to install the BaylorEdPsych package, so we copied the function here:
+# As we were not able to install the BaylorEdPsych package, we had to copy the function here:
 ```{r, include=FALSE}
 LittleMCAR<-function(x){
  if (!require(mvnmle)) 
@@ -194,13 +194,15 @@ list(chi.square=d2, df=df, p.value=p.value, missing.patterns=n.mis.pat, amount.m
 }
 ```
 
+# Run the little test to see if the missing value are MCAR, MAR or MNAR.
 ```{r}
 little.test <- LittleMCAR(data)
 ```
 ```{r}
 little.test$chi.square
 ```
-=> data is NOT missing completely at random
+
+# Data is NOT missing completely at random
 ```{r}
 little.test$p.value
 ```
@@ -221,6 +223,7 @@ numerical_data <- data %>%
 md.pattern(numerical_data)
 ```
 
+# Use MICE to impute the data
 ```{r}
 # Look the NA's with VIM packages
 mice_plot <- aggr(numerical_data, col=c('navyblue','yellow'),
@@ -243,14 +246,10 @@ completeData <- mice::complete(imputed_Data, 3)
 ```
 ```{r}
 stripplot(imputed_Data, job_duration, pch = 19, xlab = "Imputation number")
-
 ```
 ```{r}
 stripplot(imputed_Data, n_enquiries, pch = 19)
-
 ```
-
-
 ```{r}
 stripplot(imputed_Data, pch = 10, cex = 1.2)
 ```
@@ -258,16 +257,15 @@ stripplot(imputed_Data, pch = 10, cex = 1.2)
 densityplot(imputed_Data)
 ```
 
-
-knn for numerical imputations
+# KNN for numerical imputations
 ```{r}
 knn_imputed <- kNN(numerical_data)
 ```
-
 ```{r}
 marginplot(knn_imputed[, c("price", "job_duration")])
 ```
-MIMI function for numerical imputations
+
+# MIMI function for numerical imputations
 ```{r, include=FALSE}
 #assume missings represented with NA
 uncompleteVar<-function(vector){any(is.na(vector))}
@@ -370,7 +368,6 @@ densityplot(mimi_imputed$imputedData$price, col = "blue", add = TRUE)
 densityplot(mimi_imputed$imputedData$job_duration, col = "blue", add = TRUE)
 densityplot(data$job_duration, col = "blue", add = TRUE)
 
-
 ```
 ```{r}
 densityplot(mimi_imputed$imputedData$n_enquiries, col = "blue", add = TRUE)
@@ -388,37 +385,21 @@ densityplot(data$n_enquiries, col = "blue", add = TRUE)
 densityplot(completeData$price, col = "blue", add = TRUE)
 densityplot(data$price, col = "blue", add = TRUE)
 ```
-We decided to use the numerical imputations from mice
+
+# Based on the performances of each imputation method that we had for our dataset, We decided to use MICE for numerical imputations
 ```{r}
 columns_to_replace <- c("price", "n_enquiries", "job_duration")
 data[columns_to_replace] <- completeData[columns_to_replace]
 head(data)
 ```
 
-Now we did a PCA only for numerical variables to see how variables are related
-
+# Now we did a PCA only for numerical variables to see how variables are related
 ```{r}
 numeriques<-which(sapply(data,is.numeric))
 numeriques
 
 dcon<-data[,numeriques]
 sapply(dcon,class)
-
-#dcon <- data.frame (Antiguedad.Trabajo,Plazo,Edad,Gastos,Ingresos,Patrimonio,Cargas.patrimoniales,Importe.solicitado,Precio.del.bien.financiado,Estalvi, RatiFin)
-
-#alternatively
-#dim(dd)
-#indexCon<-c(2,4:5,9:16)
-#dcon<-dd[,indexCon]
-#names(dcon)
-
-#be sure you don't have missing data in your numerical variables.
-
-#in case of having missing data, select complete rows JUST TO FOLLOW THE CLASS
-#dd<-dd[!is.na(dd[,indecCon[1]])& !is.na(dd[,indecCon[2]]) & !is.na(dd[,indecCon[3]])& !is.na(dd[,indecCon[4]]),]
-#then preprocess your complete data set to IMPUTE all missing data, and reproduce
-#the whole analysis again
-# PRINCIPAL COMPONENT ANALYSIS OF dcon
 
 pc1 <- prcomp(dcon, scale=TRUE)
 class(pc1)
@@ -447,7 +428,7 @@ percInerAccum
 
 
 # SELECTION OF THE SINGIFICNT DIMENSIONS (keep 80% of total inertia)
-
+# In order to keep more than 80% of information, the required components are 5 (82,367%). 
 nd = 5
 
 print(pc1)
@@ -723,7 +704,38 @@ for(j in 1:length(groups)){
 
 
 # Outlier detection 
-use Mahalanobis distance with principal component analysis
+# Once we have the PCA (1rst and 2n component), we can use Mahalanobis distance to detect outlier using with a cutoff of 95%
 
+```{r}
+
+# Plot the PCA plan
+plot(Psi[,eje1],Psi[,eje2])
+# text(Psi[,eje1],Psi[,eje2],labels=iden,  cex=0.5)
+axis(side=1, pos= 0, labels = F, col="cyan")
+axis(side=3, pos= 0, labels = F, col="cyan")
+axis(side=2, pos= 0, labels = F, col="cyan")
+axis(side=4, pos= 0, labels = F, col="cyan")
+
+# Defining the parameter for Mahalanobis distance
+df <- Psi[,eje1:eje2]
+df.center <- colMeans(df)
+df.cov <- cov(df)
+rad <- sqrt(qchisq(0.95, df = ncol(df)))
+
+
+# Plotting the ellipse of mahalanobis distance
+ellipse <- data.frame(ellipse(df.center, df.cov, rad, 100, FALSE, col = "orange", fill=TRUE))
+
+# Applying the function
+distances <- mahalanobis(x = df, center = df.center, cov = df.cov)
+
+# Defining the Cut-off trigger using Chi-square distance
+# with p = 0.95 df = 2 which in ncol(df)
+cutoff <- qchisq(p = 0.95 , df = ncol(df))
+
+# Display all the observations whose distance is greater than the cut-off value.
+df[distances > cutoff ,]
+
+```
 
 
