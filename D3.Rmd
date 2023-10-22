@@ -393,8 +393,17 @@ data[columns_to_replace] <- completeData[columns_to_replace]
 head(data)
 ```
 
-# Now we did a PCA only for numerical variables to see how variables are related
-```{r}
+# PCA
+Firstly, we did a PCA only for numerical variables to see how variables are 
+related, the result of the 9 principal components shows that keeping 5 components
+are required in order to explain 80% of the accumulated inertia. Using the 
+two main components (50% of accumulated inertia) we can see that 
+how variables like "price", "credit" and "loan" have the most extreme values of PC1 whereas 
+"income" is located at the middle. This suggest that the first axis is 
+related to an economical pattern however, with this information is still not 
+possible to interprete the second axis.
+```{r, include=FALSE}
+# Here we can see the output of the PCA 
 numeriques<-which(sapply(data,is.numeric))
 numeriques
 
@@ -407,28 +416,22 @@ attributes(pc1)
 
 print(pc1)
 
-str(pc1)
+# str(pc1) Analyse the result of the 1rst principal component
+```
 
+```{r}
+# accumulated Inertia in subspace, from first principal component to the 11th dimension subspace
+barplot(100*cumsum(pc1$sdev[1:dim(dcon)[2]]^2)/dim(dcon)[2], main = 
+        'Analysis of principal components', 
+        names.arg = c("PC1", "PC2", "PC3", "PC4", "PC5",
+        "PC6", "PC7", "PC8", "PC9"), ylab = "Cumulative total inertia (%)")
 
-# WHICH PERCENTAGE OF THE TOTAL INERTIA IS REPRESENTED IN SUBSPACES?
+abline(80,0, col = "blue", lwd = 2, lty = 2)
+axis(side=2, at=(seq(0, 100, by=10)), labels = FALSE)
 
-pc1$sdev
-inerProj<- pc1$sdev^2 
-inerProj
-totalIner<- sum(inerProj)
-totalIner
-pinerEix<- 100*inerProj/totalIner
-pinerEix
-barplot(pinerEix)
-
-#Cummulated Inertia in subspaces, from first principal component to the 11th dimension subspace
-barplot(100*cumsum(pc1$sdev[1:dim(dcon)[2]]^2)/dim(dcon)[2])
-percInerAccum<-100*cumsum(pc1$sdev[1:dim(dcon)[2]]^2)/dim(dcon)[2]
-percInerAccum
-
-
-# SELECTION OF THE SINGIFICNT DIMENSIONS (keep 80% of total inertia)
-# In order to keep more than 80% of information, the required components are 5 (82,367%). 
+```
+```{r, include=FALSE}
+# Select only 5 components
 nd = 5
 
 print(pc1)
@@ -481,10 +484,8 @@ axis(side=4, pos= 0, labels = F, col="cyan")
 #plot3d(Psi[,1],Psi[,2],Psi[,3])
 
 #Projection of variables
-
 # Correlation between original variables and the principal components
 Phi = cor(dcon,Psi)
-View(Phi)
 
 #select your axis
 
@@ -498,19 +499,7 @@ axis(side=2, pos= 0, labels = F)
 axis(side=4, pos= 0, labels = F)
 arrows(ze, ze, X, Y, length = 0.07,col="blue")
 text(X,Y,labels=etiq,col="darkblue", cex=0.7)
-```
 
-```{r}
-pinerEix<- 100*inerProj/totalIner
-pinerEix
-barplot(pinerEix)
-
-#Cummulated Inertia in subspaces, from first principal component to the 11th dimension subspace
-barplot(100*cumsum(pc1$sdev[1:dim(dcon)[2]]^2)/dim(dcon)[2])
-percInerAccum<-100*cumsum(pc1$sdev[1:dim(dcon)[2]]^2)/dim(dcon)[2]
-percInerAccum
-```
-```{r}
 plot(Psi[,eje1],Psi[,eje2], type="n")
 #text(Psi[,eje1],Psi[,eje2],labels=iden, cex=0.5)
 axis(side=1, pos= 0, labels = F, col="cyan")
@@ -521,16 +510,20 @@ axis(side=4, pos= 0, labels = F, col="cyan")
 
 
 ```{r}
-plot(Psi[,eje1],Psi[,eje2],type="n", xlim = c(-1,1), ylim = c(-1, 1))
+plot(Psi[,eje1],Psi[,eje2],type="n", xlim = c(-1,0.01), ylim = c(-1, 1),
+     main = '', xlab = 'PC1', ylab='PC2')
 axis(side=1, pos= 0, labels = F)
 axis(side=3, pos= 0, labels = F)
 axis(side=2, pos= 0, labels = F)
 axis(side=4, pos= 0, labels = F)
-arrows(ze, ze, X, Y, length = 0.07,col="blue")
-text(X,Y,labels=etiq,col="darkblue", cex=0.7)
+# arrows(ze, ze, X, Y, length = 0.07,col="blue")
+text(X,Y,labels=etiq,col="darkblue", cex=0.8)
+text(-0.65,-0.7, 
+     substitute(paste(italic('Note: "price" and "credit" share almost the same space')))
+     ,col="red", cex=0.8)
 ```
 
-```{r}
+```{r, include=FALSE}
 # Zoom to see the aggregated variables among the negative first component
 
 plot(Psi[,eje1],Psi[,eje2],type="n", xlim = c(-1,-0.7), ylim = c(-0.2, 0.2))
@@ -540,9 +533,7 @@ axis(side=2, pos= 0, labels = F)
 axis(side=4, pos= 0, labels = F)
 arrows(ze, ze, X, Y, length = 0.07,col="blue")
 text(X,Y,labels=etiq,col="darkblue", cex=0.7)
-```
 
-```{r}
 # Check that there are not more variables aggregated close to "loan"
 
 plot(Psi[,eje1],Psi[,eje2],type="n", xlim = c(-1,-0.85), ylim = c(-0.1, 0))
@@ -554,27 +545,38 @@ arrows(ze, ze, X, Y, length = 0.07,col="blue")
 text(X,Y,labels=etiq,col="darkblue", cex=0.7)
 ```
 
- Afterwards, categorical variables are projected into PCA to have a better 
- understanding of the factorial plains
+To have a better understanding of the factorial planes the target variable 
+"pay" was added into the map. Note that the figure shows that there is a
+difference on loans that are "payed" or "overdue"
+
+
+
 
 ```{r}
 # Adding the target variable (index=2)
 varcat=factor(data[,2])
-plot(Psi[,1],Psi[,2], pch=c(1,20) [varcat], col=c("lightgreen", "red") [varcat])
+plot(Psi[,1],Psi[,2], pch=c(1,20) [varcat], col=c("lightgreen", "red") [varcat],
+     xlab = 'PC1', ylab = 'PC2')
 axis(side=1, pos= 0, labels = F, col="darkgray")
 axis(side=3, pos= 0, labels = F, col="darkgray")
 axis(side=2, pos= 0, labels = F, col="darkgray")
 axis(side=4, pos= 0, labels = F, col="darkgray")
-legend("bottomleft",levels(factor(varcat)),pch=c(1,20),col=c(1,2), cex=0.6)
+legend(levels(factor(varcat)),pch=c(1,20),col=c(1,2), cex=0.6)
+
+text(fdic1,fdic2,labels=levels(varcat), col=c("darkblue", "darkblue"), 
+     cex=0.7)
 
 ```
-```{r}
+
+
+
+```{r, include=FALSE}
 # From the previous plot, check where the centroids of "paid" and "overdue" are
 varcat<-factor(data[,2]) 
 fdic1 = tapply(Psi[,eje1],varcat,mean)
 fdic2 = tapply(Psi[,eje2],varcat,mean) 
 
-plot(Psi[,eje1],Psi[,eje2],type="n")
+plot(Psi[,eje1],Psi[,eje2],type="n", xlim= c(-1,1), ylim = c(-1,1))
 axis(side=1, pos= 0, labels = F, col="cyan")
 axis(side=3, pos= 0, labels = F, col="cyan")
 axis(side=2, pos= 0, labels = F, col="cyan")
@@ -584,7 +586,7 @@ text(fdic1,fdic2,labels=levels(varcat), col=c("green", "red"),
      cex=0.7)
 ```
 
-```{r}
+```{r, include=FALSE}
 dcat <- c(2:5,11:14,17:18,20)
 colors<-rainbow(length(dcat))
 
@@ -609,7 +611,7 @@ legend("bottomleft",names(data)[dcat],pch=1,col=colors, cex=0.6)
 
 ```
 
-```{r}
+```{r, include=FALSE}
 # A zoom is required 
 dcat <- c(2:5,11:14,17:18,20)
 colors<-rainbow(length(dcat))
@@ -634,6 +636,9 @@ for(k in dcat){
 legend("bottomleft",names(data)[dcat],pch=1,col=colors, cex=0.6)
 
 ```
+
+
+
 ```{r}
 # As there are too much variables its important to do several maps that will 
 # share the same length of the axis to be comparable visually
@@ -667,6 +672,8 @@ for(j in 1:length(groups)){
 
 
 ```
+
+
 ```{r}
 # Numerical variables and centroids of desired categorical variables
 # Several maps are created to see relations
@@ -704,7 +711,8 @@ for(j in 1:length(groups)){
 
 
 # Outlier detection 
-# Once we have the PCA (1rst and 2n component), we can use Mahalanobis distance to detect outlier using with a cutoff of 95%
+Once we have the PCA (1rst and 2n component), we can use Mahalanobis distance 
+to detect outlier using with a cutoff of 95%. The orange 
 
 ```{r}
 
