@@ -31,7 +31,7 @@ names(data) <- c("id", "target", "contract", "gender", "car", "n_child",
 names(data)
 ```
 
-# Rename the Categorical feature in a concise name
+# Rename the categorical feature in a more concise name
 ```{r}
 data$job_stat <- fct_recode(data$job_stat, "Commer. Assoc." = "Commercial associate")
 data$family <- fct_recode(data$family,  "single" = "Single / not married", "divorce" = "Separated")
@@ -42,7 +42,7 @@ data$studies <- fct_recode(data$studies, "Secondary" = "Secondary / secondary sp
 ```
 
 
-# Transform the numerical&characters into factor.
+# Transform the numerical & characters into factor.
 ```{r}
 # convert numerical (0,1) -> as factor ("payed", "overdue")
 data$target <- factor(data$target, levels = c(0,1), labels = c("payed","overdue"))
@@ -56,7 +56,7 @@ summary(data)
 
 
 # Transform variables 
-# First, we have an age feature (age when they applied to the loan) that is a negative number and computed as the days spent in their lifetime until the moment they apply for the loan. We want to transform it into years, for a more comprehensive purpuso.
+# First, we have an age feature (age when they applied to the loan) that is a negative number and computed as the days spent in their lifetime until the moment they apply for the loan. We want to transform it into years, for a more comprehensive purpose.
 ```{r}
 data$age<-floor(abs(data$age) / 365)
 ```
@@ -194,7 +194,7 @@ list(chi.square=d2, df=df, p.value=p.value, missing.patterns=n.mis.pat, amount.m
 }
 ```
 
-# Run the little test to see if the missing value are MCAR, MAR or MNAR.
+# Run the little test to see if the missing value are MCAR, MAR or MNAR type
 ```{r}
 little.test <- LittleMCAR(data)
 ```
@@ -710,7 +710,6 @@ for(j in 1:length(groups)){
 
 # Plot the PCA plan
 plot(Psi[,eje1],Psi[,eje2])
-# text(Psi[,eje1],Psi[,eje2],labels=iden,  cex=0.5)
 axis(side=1, pos= 0, labels = F, col="cyan")
 axis(side=3, pos= 0, labels = F, col="cyan")
 axis(side=2, pos= 0, labels = F, col="cyan")
@@ -729,13 +728,20 @@ ellipse <- data.frame(ellipse(df.center, df.cov, rad, 100, FALSE, col = "orange"
 # Applying the function
 distances <- mahalanobis(x = df, center = df.center, cov = df.cov)
 
-# Defining the Cut-off trigger using Chi-square distance
-# with p = 0.95 df = 2 which in ncol(df)
+# Defining the Cut-off trigger using Chi-square distance with p = 0.95 df = 2 which in ncol(df)
 cutoff <- qchisq(p = 0.95 , df = ncol(df))
 
 # Display all the observations whose distance is greater than the cut-off value.
 df[distances > cutoff ,]
 
+# Displan only the observation within the distance
+df_clean <- df[distances < cutoff ,]
+plot(df_clean, type = "p")
+# text(Psi[,eje1],Psi[,eje2],labels=iden,  cex=0.5)
+axis(side=1, pos= 0, labels = F, col="cyan")
+axis(side=3, pos= 0, labels = F, col="cyan")
+axis(side=2, pos= 0, labels = F, col="cyan")
+axis(side=4, pos= 0, labels = F, col="cyan")
 ```
 
 
