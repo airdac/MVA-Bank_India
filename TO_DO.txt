@@ -1,5 +1,5 @@
-- Update metadata file with variable names (done)
-- Use codes for each categorical name (too long for analysis of PCA) (done, using shorter name)
-- Outliers detection using Mahalanobian distance (done)
+- Update metadata file with variable names (Ji: done)
+- Use codes for each categorical name (too long for analysis of PCA) (Ji: done, using shorter name)
+- Outliers detection using Mahalanobian distance (Ji: done)
 - Write the document (hide unnecesary code and explain steps) (Ji is working on it)
 - Make plots more beautiful (ex: add titles)
