@@ -411,12 +411,7 @@ dcon<-data[,numeriques]
 sapply(dcon,class)
 
 pc1 <- prcomp(dcon, scale=TRUE)
-class(pc1)
-attributes(pc1)
-
-print(pc1)
-
-# str(pc1) Analyse the result of the 1rst principal component
+pc1
 ```
 
 ```{r}
@@ -433,21 +428,7 @@ axis(side=2, at=(seq(0, 100, by=10)), labels = FALSE)
 ```{r, include=FALSE}
 # Select only 5 components
 nd = 5
-
-print(pc1)
-attributes(pc1)
-pc1$rotation
-
-# STORAGE OF THE EIGENVALUES, EIGENVECTORS AND PROJECTIONS IN THE nd DIMENSIONS
-View(pc1$x)
-dim(pc1$x)
-dim(dcon)
-dcon[2000,]
-pc1$x[2000,]
-
 Psi = pc1$x[,1:nd]
-dim(Psi)
-Psi[2000,]
 
 # STORAGE OF LABELS FOR INDIVIDUALS AND VARIABLES
 
@@ -457,10 +438,8 @@ ze = rep(0,length(etiq)) # WE WILL NEED THIS VECTOR AFTERWARDS FOR THE GRAPHICS
 
 # PLOT OF INDIVIDUALS
 
-#select your axis
-#eje1<-2
+#select our axis
 eje1<-1
-#eje2<-3
 eje2<-2
 
 # Here is were we create the shadows
@@ -480,14 +459,12 @@ axis(side=1, pos= 0, labels = F, col="cyan")
 axis(side=3, pos= 0, labels = F, col="cyan")
 axis(side=2, pos= 0, labels = F, col="cyan")
 axis(side=4, pos= 0, labels = F, col="cyan")
-#library(rgl)
-#plot3d(Psi[,1],Psi[,2],Psi[,3])
 
 #Projection of variables
 # Correlation between original variables and the principal components
 Phi = cor(dcon,Psi)
 
-#select your axis
+#select our axis
 
 X<-Phi[,eje1]
 Y<-Phi[,eje2]
@@ -548,9 +525,6 @@ text(X,Y,labels=etiq,col="darkblue", cex=0.7)
 To have a better understanding of the factorial planes the target variable 
 "pay" was added into the map. Note that the figure shows that there is a
 difference on loans that are "payed" or "overdue"
-
-
-
 
 ```{r}
 # Adding the target variable (index=2)
@@ -753,3 +727,24 @@ axis(side=4, pos= 0, labels = F, col="cyan")
 ```
 
 
+```{r}
+#select other axes
+
+eje1 = 3
+eje2 = 4
+
+X<-Phi[,eje1]
+Y<-Phi[,eje2]
+
+plot(Psi[,eje1],Psi[,eje2],type="n", xlim = c(-.2,1), ylim = c(-1,.2))
+axis(side=1, pos= 0, labels = F)
+axis(side=3, pos= 0, labels = F)
+axis(side=2, pos= 0, labels = F)
+axis(side=4, pos= 0, labels = F)
+arrows(ze, ze, X, Y, length = 0.07,col="blue")
+text(X,Y,labels=etiq,col="darkblue", cex=0.7)
+```
+It seems that the 4th axis is only related with the id attribute, while the 3rd
+might be how often the client accesses the bank. Since they are only
+related to variables we already possess, we can conclude that these 
+factorial axes aren't relevant in our analysis.
