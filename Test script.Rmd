@@ -16,7 +16,7 @@ require(StatMatch)
 # Context
 # Read data
 ```{r}
-data <- read.csv("reduced_data_sample.csv")
+data <- read.csv("Bank-India-data.csv")
 ```
 # Data Exploratory
 # Preprocessing
@@ -141,3 +141,30 @@ Percentage of missing values:
 ```{r}
 689/nrow(data)*100
 ```
+
+
+```{r}
+install.packages("ggplot2")
+library(ggplot2)
+```
+
+
+```{r}
+
+
+
+# df <- data.frame(data$n_child, age)
+
+# Calculate the average age for each n_child value
+avg_age <- tapply(data$age, data$n_child, mean)
+
+# Create the scatter plot
+plot(names(avg_age), avg_age, xlab = "n_child", ylab = "Average Age", main = "Average Age vs. n_child")
+
+regression_model <- lm(data$age ~ data$n_child, data = data)
+
+abline(regression_model, col = "blue")
+
+
+```
+
