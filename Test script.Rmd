@@ -11,12 +11,13 @@ library(VIM)
 library(mice)
 library(cluster)
 require(StatMatch)
+library(ggplot2)
 ```
 
 # Context
 # Read data
 ```{r}
-data <- read.csv("reduced_data_sample.csv")
+data <- read.csv("Bank-India-data.csv")
 ```
 # Data Exploratory
 # Preprocessing
@@ -47,8 +48,8 @@ summary(data)
 data$job_stat <- fct_recode(data$job_stat, "Commer. Assoc." = "Commercial associate")
 data$family <- fct_recode(data$family,  "single" = "Single / not married", "divorce" = "Separated")
 data$house <- fct_recode(data$house, "apartment" = "House / apartment", "Municipal apart." = "Municipal apartment", "Rented apart."="Rented apartment", "Office apart."="Office apartment", "Co-op apart."="Co-op apartment")
-data$occupation <- fct_recode(data$occupation, "High-tech stf" = "High skill tech staff", "Medic stf" = "Medicine staff", "Chef" = "Cooking staff", "Security" = "Security staff", "Waiters staff" = "Waiters/barmen staff", "Low-skill labor." = "Low-skill Laborers")
-data$companion <- fct_recode(data$companion, "partner" = "Spouse, partner", "Unaccompan." = "Unaccompanied", "Group of people" = "Group_people")
+data$occupation <- fct_recode(data$occupation, "High-tech stf" = "High skill tech staff", "Medic stf" = "Medicine staff", "Chef" = "Cooking staff", "Security" = "Security staff", "Waiters" = "Waiters/barmen staff", "Low-skill labor." = "Low-skill Laborers", "Private ser." = "Private service staff")
+data$companion <- fct_recode(data$companion, "Partner" = "Spouse, partner", "Unaccompan." = "Unaccompanied", "Group_people" = "Group of people")
 data$studies <- fct_recode(data$studies, "Secondary" = "Secondary / secondary special", "Higher edu." = "Higher education")
 
 ```
@@ -141,3 +142,30 @@ Percentage of missing values:
 ```{r}
 689/nrow(data)*100
 ```
+
+
+```{r}
+library(ggplot2)
+```
+
+
+```{r}
+
+
+
+# df <- data.frame(data$n_child, age)
+
+# Calculate the average age for each n_child value
+avg_age <- tapply(data$age, data$n_child, mean)
+
+# Create the scatter plot
+plot(names(avg_age), avg_age, xlab = "n_child", ylab = "Average Age", main = "Average Age vs. n_child")
+
+regression_model <- lm(data$age ~ data$n_child, data = data)
+
+abline(regression_model, col = "blue")
+
+plot (data$n_child, data$age)
+
+```
+

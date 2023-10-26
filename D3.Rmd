@@ -17,10 +17,18 @@ library(car)
 require(StatMatch)
 ```
 
+
+##### Data Overview #####
+
 # Read data
 ```{r}
-data <- read.csv("reduced_data_sample.csv")
+data <- read.csv("Bank-India-data.csv")
+
+summary(data)
 ```
+
+
+##### Preprocessing - Basic Transformation #####
 
 # Rename the features to a naunced name
 ```{r}
@@ -41,19 +49,19 @@ data$companion <- fct_recode(data$companion, "Partner" = "Spouse, partner", "Una
 data$studies <- fct_recode(data$studies, "Secondary" = "Secondary / secondary special", "Higher edu." = "Higher education")
 ```
 
-
 # Transform the numerical & characters into factor.
 ```{r}
-# convert numerical (0,1) -> as factor ("payed", "overdue")
+# convert numerical target (0,1) -> as factor ("payed", "overdue")
 data$target <- factor(data$target, levels = c(0,1), labels = c("payed","overdue"))
-# convert character -> as factor:
+
+# convert character feature (such as gender, car or contract type) -> as factor:
 char_cols <- which(sapply(data, is.character))
-data[, char_cols] <- lapply(data[, char_cols], as.factor) 
-# Review if the transformation is executed properly
+data[, char_cols] <- lapply(data[, char_cols], as.factor)
+
+# Review if the transformation has executed properly
 str(data)
 summary(data)
 ```
-
 
 # Transform variables 
 # First, we have an age feature (age when they applied to the loan) that is a negative number and computed as the days spent in their lifetime until the moment they apply for the loan. We want to transform it into years, for a more comprehensive purpose.
@@ -63,7 +71,7 @@ data$age<-floor(abs(data$age) / 365)
 
 # Second, we transform the job_duration variable (#days they worked when they applied to the loan in the current work). Also calculated with days. We think it is more understandable to see the years. 
 
-# When we have a glimpse of the values, we can see an error in this feature. There is a value of 365243 days working, which cleary is a wrong value as it's equivalent to 1000 years worked. This value is recorded when the job_type equal to XNA, which means the applicant does not have any work.
+# When we have a glimpse of the values, we can see an error in this feature. There is a value of 365243 days working, which cleary is a wrong value as it's equivalent to 1000 years worked. This value is recorded when the job_type equal to XNA, which means the applicant does not have any work at the time of application.
 # So we also rewrite the missing values of the factor variables as "Unknown". 
 ```{r}
 # data$job_duration
@@ -95,11 +103,12 @@ summary(data)
 
 # The variables that have (other) : occupation, job_type,companion: means that there are more classes. Let's explore them: 
 ```{r}
-names(table(data$occupation))
+
 # What does the following code do?
 # data <- data %>%
 #  mutate_all(~replace(., . == "XNA", "Unknown"))
 # print(unique(data$occupation))
+names(table(data$occupation))
 names(table(data$job_type))
 names(table(data$companion))
 ```
@@ -115,7 +124,7 @@ missing_perc = na_perc + unknown_perc
 ```
 
 # Attention, there is only one numerical variable with missing values: 'n_enquiries'. Percentage of missing values:
-# What the purpose of this line???
+# What's the purpose of this line?
 ```{r}
 689/nrow(data)*100
 ```
@@ -202,7 +211,7 @@ little.test <- LittleMCAR(data)
 little.test$chi.square
 ```
 
-# Data is NOT missing completely at random
+# Data is NOT missing completely at random as p-value is 0.
 ```{r}
 little.test$p.value
 ```
@@ -222,6 +231,9 @@ numerical_data <- data %>%
 
 md.pattern(numerical_data)
 ```
+
+
+######  Preprocessing - Data Imputation #######
 
 # Use MICE to impute the data
 ```{r}
@@ -276,8 +288,6 @@ Mode <- function(x)
   maxV<-which.max(table(x))
   return(levels(x)[maxV])
 }
-
-
 
 MiMMi <- function(data, priork=-1)
 {
@@ -360,6 +370,7 @@ mimi_imputed$imputation
 mimi_imputed$imputedData
 ```
 
+# Density Plot
 ```{r}
 densityplot(data$price, col = "blue", main = "Density Plot of Price")
 densityplot(mimi_imputed$imputedData$price, col = "blue", add = TRUE)
@@ -393,29 +404,27 @@ data[columns_to_replace] <- completeData[columns_to_replace]
 head(data)
 ```
 
-# PCA
-Firstly, we did a PCA only for numerical variables to see how variables are 
-related, the result of the 9 principal components shows that keeping 5 components
-are required in order to explain 80% of the accumulated inertia. Using the 
-two main components (50% of accumulated inertia) we can see that 
-how variables like "price", "credit" and "loan" have the most extreme values of PC1 whereas 
-"income" is located at the middle. This suggest that the first axis is 
-related to an economical pattern however, with this information is still not 
-possible to interprete the second axis.
+
+##### PCA #####
+
+# Firstly, we did a PCA only for numerical variables to see how the variables are related. The result of the 9 principal components shows that keeping first 5 components are required in order to explain 80% of the accumulated inertia. 
+# Using the two main components (50% of accumulated inertia) we can see that how variables like "price", "credit" and "loan" have the most extreme values of PC1 whereas "income" is located at the middle. This suggest that the first axis is related to an economical pattern. While in the second axis, it's related with time, such as age and job duration. 
+#~The n_child is seems to be an outlier, but we'll comment it later.
+
 ```{r, include=FALSE}
 # Here we can see the output of the PCA 
-numeriques<-which(sapply(data,is.numeric))
+numeriques <- which(sapply(data,is.numeric))
 numeriques
 
-dcon<-data[,numeriques]
+dcon <- data[,numeriques]
 sapply(dcon,class)
 
 pc1 <- prcomp(dcon, scale=TRUE)
 pc1
 ```
 
+# Accumulated Inertia in subspace, from first principal component to the 11th dimension subspace. Which we can observe that 5 components are required in order to achieve the 80% of accumulated inertia.
 ```{r}
-# accumulated Inertia in subspace, from first principal component to the 11th dimension subspace
 barplot(100*cumsum(pc1$sdev[1:dim(dcon)[2]]^2)/dim(dcon)[2], main = 
         'Analysis of principal components', 
         names.arg = c("PC1", "PC2", "PC3", "PC4", "PC5",
@@ -425,6 +434,8 @@ abline(80,0, col = "blue", lwd = 2, lty = 2)
 axis(side=2, at=(seq(0, 100, by=10)), labels = FALSE)
 
 ```
+
+# PCA plot construction
 ```{r, include=FALSE}
 # Select only 5 components
 nd = 5
@@ -438,7 +449,7 @@ ze = rep(0,length(etiq)) # WE WILL NEED THIS VECTOR AFTERWARDS FOR THE GRAPHICS
 
 # PLOT OF INDIVIDUALS
 
-#select our axis
+#Select the component to be plot on our axis
 eje1<-1
 eje2<-2
 
@@ -485,7 +496,7 @@ axis(side=2, pos= 0, labels = F, col="cyan")
 axis(side=4, pos= 0, labels = F, col="cyan")
 ```
 
-
+# Projecting the PCA in the Factorial plan.
 ```{r}
 plot(Psi[,eje1],Psi[,eje2],type="n", xlim = c(-1,0.01), ylim = c(-1, 1),
      main = '', xlab = 'PC1', ylab='PC2')
@@ -498,11 +509,13 @@ text(X,Y,labels=etiq,col="darkblue", cex=0.8)
 text(-0.65,-0.7, 
      substitute(paste(italic('Note: "price" and "credit" share almost the same space')))
      ,col="red", cex=0.8)
+
+# The "price" and "credit" are overlap, because one is the price of the good that they want to purchase, while the credit is the loan that the client request. And in most of the cases, they are really similar.
+# The n_child seems to be opposite than age, which is kind of controversial. The reason of that is, based on the sample size that we are investigating, the younger age tend to have more child than older people.
 ```
 
-```{r, include=FALSE}
 # Zoom to see the aggregated variables among the negative first component
-
+```{r, include=FALSE}
 plot(Psi[,eje1],Psi[,eje2],type="n", xlim = c(-1,-0.7), ylim = c(-0.2, 0.2))
 axis(side=1, pos= 0, labels = F)
 axis(side=3, pos= 0, labels = F)
@@ -522,9 +535,7 @@ arrows(ze, ze, X, Y, length = 0.07,col="blue")
 text(X,Y,labels=etiq,col="darkblue", cex=0.7)
 ```
 
-To have a better understanding of the factorial planes the target variable 
-"pay" was added into the map. Note that the figure shows that there is a
-difference on loans that are "payed" or "overdue"
+# To have a better understanding of the factorial planes the target variable "pay" was added into the map. Note that the figure shows that there is a difference on loans that are "payed" or "overdue"
 
 ```{r}
 # Adding the target variable (index=2)
@@ -542,10 +553,8 @@ text(fdic1,fdic2,labels=levels(varcat), col=c("darkblue", "darkblue"),
 
 ```
 
-
-
+# If we take a loop in the centroid of distribution of "paid" and "overdue", where's the result.
 ```{r, include=FALSE}
-# From the previous plot, check where the centroids of "paid" and "overdue" are
 varcat<-factor(data[,2]) 
 fdic1 = tapply(Psi[,eje1],varcat,mean)
 fdic2 = tapply(Psi[,eje2],varcat,mean) 
@@ -560,6 +569,7 @@ text(fdic1,fdic2,labels=levels(varcat), col=c("green", "red"),
      cex=0.7)
 ```
 
+# Adding the categorical feature in the factorial plan to find the correlation between variables.
 ```{r, include=FALSE}
 dcat <- c(2:5,11:14,17:18,20)
 colors<-rainbow(length(dcat))
@@ -585,8 +595,8 @@ legend("bottomleft",names(data)[dcat],pch=1,col=colors, cex=0.6)
 
 ```
 
-```{r, include=FALSE}
 # A zoom is required 
+```{r, include=FALSE}
 dcat <- c(2:5,11:14,17:18,20)
 colors<-rainbow(length(dcat))
 
@@ -612,13 +622,9 @@ legend("bottomleft",names(data)[dcat],pch=1,col=colors, cex=0.6)
 ```
 
 
-
+# As there are too much variables its important to do several maps that will share the same length of the axis to be comparable visually 
+# Note: There is a bug in the visualization. The last plot seams smaller but when you save the figure all of them have the same size
 ```{r}
-# As there are too much variables its important to do several maps that will 
-# share the same length of the axis to be comparable visually
-# Note: There is a bug in the visualization. The last plot seams smaller
-# but when you save the figure all of them have the same size
-
 groups <- list(c(2:5), c(11:13), 14, 17, 18, 20)
 
 for(j in 1:length(groups)){
@@ -647,11 +653,9 @@ for(j in 1:length(groups)){
 
 ```
 
-
-```{r}
 # Numerical variables and centroids of desired categorical variables
 # Several maps are created to see relations
-
+```{r}
 groups <- list(c(2:5), c(11:13))
 
 for(j in 1:length(groups)){
@@ -684,12 +688,11 @@ for(j in 1:length(groups)){
 ```
 
 
-# Outlier detection 
-Once we have the PCA (1rst and 2n component), we can use Mahalanobis distance 
-to detect outlier using with a cutoff of 95%. The orange 
+##### Outlier detection #####
+
+# Once we have the PCA (1rst and 2n component), we can use Mahalanobis distance to detect outlier using with a cutoff of 95%. The orange elipse circle project the 95% of confidence level, while the record outside the surface will be considered as outlier
 
 ```{r}
-
 # Plot the PCA plan
 plot(Psi[,eje1],Psi[,eje2])
 axis(side=1, pos= 0, labels = F, col="cyan")
@@ -704,9 +707,12 @@ df.cov <- cov(df)
 rad <- sqrt(qchisq(0.95, df = ncol(df)))
 
 
-# Plotting the ellipse of mahalanobis distance
+# Plotting the ellipse of Mahalanobis distance
 ellipse <- data.frame(ellipse(df.center, df.cov, rad, 100, FALSE, col = "orange", fill=TRUE))
+```
 
+# Then applying the Mahalanobis distance and the cut-off threshold, we'll find our data treated.
+```{r}
 # Applying the function
 distances <- mahalanobis(x = df, center = df.center, cov = df.cov)
 
