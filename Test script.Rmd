@@ -148,7 +148,7 @@ Percentage of missing values:
 library(ggplot2)
 ```
 
-
+Find relation between age and n_child
 ```{r}
 # df <- data.frame(data$n_child, age)
 
@@ -163,15 +163,19 @@ plot(names(avg_age), avg_age, xlab = "n_child", ylab = "Average Age", main = "Av
 abline(regression_model, col = "blue")
 ```
 
+Plot avg(age) ~ n_child
 ```{r}
 par(mfrow=c(1,1))
 plot (data$n_child, data$age)
 ```
 
+Regression model results
 ```{r}
 regression_model
+summary(regression_model)
 ```
 
+Regression model plots
 ```{r}
 par(mfrow=c(2,2))
 plot(regression_model)
