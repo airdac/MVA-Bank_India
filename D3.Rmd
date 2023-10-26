@@ -22,7 +22,7 @@ require(StatMatch)
 
 # Read data
 ```{r}
-data <- read.csv("Bank-India-data.csv")
+data <- read.csv("Bank-India-raw-data.csv")
 
 summary(data)
 ```

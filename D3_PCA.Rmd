@@ -4,23 +4,29 @@ author: "Adrià Casanova Lloveras"
 date: "2023-10-26"
 output: html_document
 ---
+# Load libraries
+```{r}
+library(car)
+```
+
+
 
 # Read data
 ```{r}
-df <- read.csv("imputed_data.csv")
+df <- read.csv("Bank-India-preprocessed-data.csv")
 data = df
 ```
 
 ##### PCA #####
 
-# Firstly, we did a PCA only for numerical variables to see how the variables are related. The result of the 9 principal components shows that keeping first 5 components are required in order to explain 80% of the accumulated inertia. 
-# Using the two main components (50% of accumulated inertia) we can see that how variables like "price", "credit" and "loan" have the most extreme values of PC1 whereas "income" is located at the middle. This suggest that the first axis is related to an economical pattern. While in the second axis, it's related with time, such as age and job duration. 
-#~The n_child is seems to be an outlier, but we'll comment it later.
+# Firstly, we did a PCA only with the numerical variables to study their relation. The result shows that out of 9 principal components, the first 5 are enough to explain 80% of the accumulated inertia. 
+# Using the two main components (50% of accumulated inertia) we can see how variables like "price", "credit" and "loan" have the most extreme values of PC1 whereas "income" is located at the middle. This suggest that the first axis describes the wealth of the costumer. Moving left, wealth increases. On the other hand, the second axis represents time, since it's very correlated to age and job_duration. The number of children decreases as time grows, as we have shown in the EDA.
 
 ```{r, include=FALSE}
 # Here we can see the output of the PCA 
 numeriques <- which(sapply(data,is.numeric))
-numeriques
+# We don't include id for the analysis
+numeriques = numeriques[-1]
 
 dcon <- data[,numeriques]
 sapply(dcon,class)
@@ -29,12 +35,12 @@ pc1 <- prcomp(dcon, scale=TRUE)
 pc1
 ```
 
-# Accumulated Inertia in subspace, from first principal component to the 11th dimension subspace. Which we can observe that 5 components are required in order to achieve the 80% of accumulated inertia.
+# Accumulated Inertia
 ```{r}
 barplot(100*cumsum(pc1$sdev[1:dim(dcon)[2]]^2)/dim(dcon)[2], main = 
         'Analysis of principal components', 
         names.arg = c("PC1", "PC2", "PC3", "PC4", "PC5",
-        "PC6", "PC7", "PC8", "PC9"), ylab = "Cumulative total inertia (%)")
+        "PC6", "PC7", "PC8"), ylab = "Cumulative total inertia (%)")
 
 abline(80,0, col = "blue", lwd = 2, lty = 2)
 axis(side=2, at=(seq(0, 100, by=10)), labels = FALSE)
@@ -43,8 +49,8 @@ axis(side=2, at=(seq(0, 100, by=10)), labels = FALSE)
 
 # PCA plot construction
 ```{r, include=FALSE}
-# Select only 5 components
-nd = 5
+# Select only 4 components
+nd = 4
 Psi = pc1$x[,1:nd]
 
 # STORAGE OF LABELS FOR INDIVIDUALS AND VARIABLES
@@ -61,15 +67,6 @@ eje2<-2
 
 # Here is were we create the shadows
 
-plot(Psi[,eje1],Psi[,eje2])
-text(Psi[,eje1],Psi[,eje2],labels=iden, cex=0.5)
-axis(side=1, pos= 0, labels = F, col="cyan")
-axis(side=3, pos= 0, labels = F, col="cyan")
-axis(side=2, pos= 0, labels = F, col="cyan")
-axis(side=4, pos= 0, labels = F, col="cyan")
-
-# Now don't display the nodes
-
 plot(Psi[,eje1],Psi[,eje2], type="n")
 text(Psi[,eje1],Psi[,eje2],labels=iden, cex=0.5)
 axis(side=1, pos= 0, labels = F, col="cyan")
@@ -77,11 +74,12 @@ axis(side=3, pos= 0, labels = F, col="cyan")
 axis(side=2, pos= 0, labels = F, col="cyan")
 axis(side=4, pos= 0, labels = F, col="cyan")
 
-#Projection of variables
+
+# Projection of variables
 # Correlation between original variables and the principal components
 Phi = cor(dcon,Psi)
 
-#select our axis
+#select our axes
 
 X<-Phi[,eje1]
 Y<-Phi[,eje2]
@@ -93,36 +91,28 @@ axis(side=2, pos= 0, labels = F)
 axis(side=4, pos= 0, labels = F)
 arrows(ze, ze, X, Y, length = 0.07,col="blue")
 text(X,Y,labels=etiq,col="darkblue", cex=0.7)
-
-plot(Psi[,eje1],Psi[,eje2], type="n")
-#text(Psi[,eje1],Psi[,eje2],labels=iden, cex=0.5)
-axis(side=1, pos= 0, labels = F, col="cyan")
-axis(side=3, pos= 0, labels = F, col="cyan")
-axis(side=2, pos= 0, labels = F, col="cyan")
-axis(side=4, pos= 0, labels = F, col="cyan")
 ```
 
-# Projecting the PCA in the Factorial plan.
+# Projecting the PCA in the Factorial plane.
 ```{r}
-plot(Psi[,eje1],Psi[,eje2],type="n", xlim = c(-1,0.01), ylim = c(-1, 1),
+plot(Psi[,eje1],Psi[,eje2],type="n", xlim = c(0,1), ylim = c(-1, 1),
      main = '', xlab = 'PC1', ylab='PC2')
 axis(side=1, pos= 0, labels = F)
 axis(side=3, pos= 0, labels = F)
 axis(side=2, pos= 0, labels = F)
 axis(side=4, pos= 0, labels = F)
-# arrows(ze, ze, X, Y, length = 0.07,col="blue")
+arrows(ze, ze, X, Y, length = 0.07,col="blue")
 text(X,Y,labels=etiq,col="darkblue", cex=0.8)
 text(-0.65,-0.7, 
      substitute(paste(italic('Note: "price" and "credit" share almost the same space')))
      ,col="red", cex=0.8)
 
-# The "price" and "credit" are overlap, because one is the price of the good that they want to purchase, while the credit is the loan that the client request. And in most of the cases, they are really similar.
-# The n_child seems to be opposite than age, which is kind of controversial. The reason of that is, based on the sample size that we are investigating, the younger age tend to have more child than older people.
+# "price" and "credit" overlap because one is the price of the good to purchase, while credit is the loan the client requests.
 ```
 
-# Zoom to see the aggregated variables among the negative first component
+# Zoom to see the variables aggregated in the negative side of the first component
 ```{r, include=FALSE}
-plot(Psi[,eje1],Psi[,eje2],type="n", xlim = c(-1,-0.7), ylim = c(-0.2, 0.2))
+plot(Psi[,eje1],Psi[,eje2],type="n", xlim = c(0.7,1), ylim = c(-0.2, 0.2))
 axis(side=1, pos= 0, labels = F)
 axis(side=3, pos= 0, labels = F)
 axis(side=2, pos= 0, labels = F)
@@ -132,7 +122,7 @@ text(X,Y,labels=etiq,col="darkblue", cex=0.7)
 
 # Check that there are not more variables aggregated close to "loan"
 
-plot(Psi[,eje1],Psi[,eje2],type="n", xlim = c(-1,-0.85), ylim = c(-0.1, 0))
+plot(Psi[,eje1],Psi[,eje2],type="n", xlim = c(0.85,1), ylim = c(-0.1, 0))
 axis(side=1, pos= 0, labels = F)
 axis(side=3, pos= 0, labels = F)
 axis(side=2, pos= 0, labels = F)
@@ -145,14 +135,19 @@ text(X,Y,labels=etiq,col="darkblue", cex=0.7)
 
 ```{r}
 # Adding the target variable (index=2)
+
+varcat<-factor(data[,2]) 
+fdic1 = tapply(Psi[,eje1],varcat,mean)
+fdic2 = tapply(Psi[,eje2],varcat,mean) 
+
 varcat=factor(data[,2])
-plot(Psi[,1],Psi[,2], pch=c(1,20) [varcat], col=c("lightgreen", "red") [varcat],
+plot(Psi[,1],Psi[,2], pch=c(1,20) [varcat], col=c("black", "red") [varcat],
      xlab = 'PC1', ylab = 'PC2')
 axis(side=1, pos= 0, labels = F, col="darkgray")
 axis(side=3, pos= 0, labels = F, col="darkgray")
 axis(side=2, pos= 0, labels = F, col="darkgray")
 axis(side=4, pos= 0, labels = F, col="darkgray")
-legend(levels(factor(varcat)),pch=c(1,20),col=c(1,2), cex=0.6)
+legend("bottomleft",levels(factor(varcat)),pch=c(1,20),col=c(1,2), cex=0.6)
 
 text(fdic1,fdic2,labels=levels(varcat), col=c("darkblue", "darkblue"), 
      cex=0.7)
@@ -161,9 +156,6 @@ text(fdic1,fdic2,labels=levels(varcat), col=c("darkblue", "darkblue"),
 
 # If we take a loop in the centroid of distribution of "paid" and "overdue", where's the result.
 ```{r, include=FALSE}
-varcat<-factor(data[,2]) 
-fdic1 = tapply(Psi[,eje1],varcat,mean)
-fdic2 = tapply(Psi[,eje2],varcat,mean) 
 
 plot(Psi[,eje1],Psi[,eje2],type="n", xlim= c(-1,1), ylim = c(-1,1))
 axis(side=1, pos= 0, labels = F, col="cyan")
@@ -175,7 +167,7 @@ text(fdic1,fdic2,labels=levels(varcat), col=c("green", "red"),
      cex=0.7)
 ```
 
-# Adding the categorical feature in the factorial plan to find the correlation between variables.
+# Adding categorical features in the factorial plan to find the correlation between variables.
 ```{r, include=FALSE}
 dcat <- c(2:5,11:14,17:18,20)
 colors<-rainbow(length(dcat))
@@ -203,9 +195,6 @@ legend("bottomleft",names(data)[dcat],pch=1,col=colors, cex=0.6)
 
 # A zoom is required 
 ```{r, include=FALSE}
-dcat <- c(2:5,11:14,17:18,20)
-colors<-rainbow(length(dcat))
-
 plot(Psi[,eje1],Psi[,eje2], type = "n", xlim = c(-3,2), ylim = c(-2,3))
 axis(side=1, pos= 0, labels = F, col="cyan")
 axis(side=3, pos= 0, labels = F, col="cyan")
@@ -228,15 +217,15 @@ legend("bottomleft",names(data)[dcat],pch=1,col=colors, cex=0.6)
 ```
 
 
-# As there are too much variables its important to do several maps that will share the same length of the axis to be comparable visually 
-# Note: There is a bug in the visualization. The last plot seams smaller but when you save the figure all of them have the same size
+# We are plotting too many modalities, so next we will plot them separately.
+# Note: There is a bug in the visualization. The last plot seems smaller but when you save the figure all of them have the same size
 ```{r}
 groups <- list(c(2:5), c(11:13), 14, 17, 18, 20)
 
 for(j in 1:length(groups)){
-  colors <- rainbow(length(groups))
+  colors <- c("red", "blue", "darkgreen")
   
-  a = plot(Psi[,eje1],Psi[,eje2], type = "n", xlim = c(-3,2), ylim = c(-2,3))
+  plot(Psi[,eje1],Psi[,eje2], type = "n", xlim = c(-3,2), ylim = c(-2,3))
   axis(side=1, pos= 0, labels = F, col="cyan")
   axis(side=3, pos= 0, labels = F, col="cyan")
   axis(side=2, pos= 0, labels = F, col="cyan")
@@ -265,16 +254,17 @@ for(j in 1:length(groups)){
 groups <- list(c(2:5), c(11:13))
 
 for(j in 1:length(groups)){
-  colors <- rainbow(length(groups))
+  # colors <- c("red", "darkgreen", "green", "brown", "blue", "purple", "darkorange")
+  colors <- c("red", "blue", "darkgreen")
   
-  a = plot(Psi[,eje1],Psi[,eje2], type = "n", xlim = c(-1,2), ylim = c(-1,3))
+  plot(Psi[,eje1],Psi[,eje2], type = "n", xlim = c(-1,2), ylim = c(-1,3))
   axis(side=1, pos= 0, labels = F, col="cyan")
   axis(side=3, pos= 0, labels = F, col="cyan")
   axis(side=2, pos= 0, labels = F, col="cyan")
   axis(side=4, pos= 0, labels = F, col="cyan")
   
   #add projections of numerical variables in background
-  arrows(ze, ze, X, Y, length = 0.07,col="lightgray")
+  arrows(ze, ze, X, Y, length = 0.07,col="gray")
   text(X,Y,labels=etiq,col="gray", cex=0.7)
     
     # Loop to add all categories of this group
@@ -381,6 +371,18 @@ Plot avg(age) ~ n_child
 par(mfrow=c(1,1))
 plot (data$n_child, data$age)
 ```
+```{r}
+reverse_lm <- lm(data$n_child ~ data$age, data = data)
+summary(reverse_lm)
+
+```
+
+```{r}
+plot (data$age, data$n_child)
+abline(reverse_lm, col = "blue")
+```
+
+
 
 Regression model results
 ```{r}
