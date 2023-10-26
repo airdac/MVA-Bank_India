@@ -150,22 +150,29 @@ library(ggplot2)
 
 
 ```{r}
-
-
-
 # df <- data.frame(data$n_child, age)
 
 # Calculate the average age for each n_child value
 avg_age <- tapply(data$age, data$n_child, mean)
-
-# Create the scatter plot
-plot(names(avg_age), avg_age, xlab = "n_child", ylab = "Average Age", main = "Average Age vs. n_child")
-
 regression_model <- lm(data$age ~ data$n_child, data = data)
-
-abline(regression_model, col = "blue")
-
-plot (data$n_child, data$age)
-
 ```
 
+```{r}
+# Create the scatter plot
+plot(names(avg_age), avg_age, xlab = "n_child", ylab = "Average Age", main = "Average Age vs. n_child")
+abline(regression_model, col = "blue")
+```
+
+```{r}
+par(mfrow=c(1,1))
+plot (data$n_child, data$age)
+```
+
+```{r}
+regression_model
+```
+
+```{r}
+par(mfrow=c(2,2))
+plot(regression_model)
+```
