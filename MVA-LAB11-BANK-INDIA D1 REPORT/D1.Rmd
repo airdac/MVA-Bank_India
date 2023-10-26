@@ -1,0 +1,95 @@
+---
+title: "D1.Definition and projects assignment."
+author: "Alícia Chimeno Sarabia"
+date: "2023-09-18"
+output: pdf_document
+---
+
+```{r Libraries, include=FALSE}
+library(tidyverse)
+library(skimr)
+```
+
+
+### 1. Name of all group components by alphabetical order (sort by Family name)
+Adrià Casanova Lloveras,Alicia Chimeno Sarabia, Victor-George Giurcoiu, Zhengoyng Ji, Victor Garcia Pizarro.
+
+## Data Source
+### 2. Data source including the url or urls involved
+https://www.kaggle.com/datasets/mishra5001/credit-card
+
+```{r echo = T, results = 'hide'}
+data <- read.csv("application_data.csv", sep = ",")
+data
+```
+
+
+
+### 3. One paragraph explaining the process to get your data (basic download, more sophisticated processes when used). It is possible to enlarge your database with additional variables coming from other sources if you like, but do not invest too much time on that. Deliver dataset on time. If it is the case, provide all urls involved in your dataset.
+
+Basic download, load the .csv.
+
+## Data Context
+### 4. One paragraph explaining what data are about
+
+Loan Application Data. This dataset contains social-economic information about clients who applied for a loan. The target variable is set to 1 if the client had a late payment and 0 if they did not. The data originates from a study conducted by IIIT Bangalore, the International Institute of Information Technology Bangalore, as mentioned by the author who updated the database on Kaggle. The columns_description.csv is a .csv file describing each variable (already done but we want to do owr own).
+
+
+## Data Description
+
+### 5. Basic structure of data matrix: One paragraph with: a. nr of records (better if it is bigger than 2000, if you are working with countries in the world or other situations, this might be reconsidered) b. nr of variables c. nr of numerical variables (minimum of 7 numerical variables) d. nr of binary variables (minimum of 2 binary variables) e. nr of qualitative variables (minimum of 5 categorical variables) f. number and % of missing data per each variable g. % of missing data in the whole data matrix.
+
+```{r echo = T, results = 'hide'}
+glimpse(data)
+summary(data)
+names(data)
+```
+
+Number of records: 
+```{r}
+nrow(data) 
+```
+
+
+
+Number of variables:
+
+```{r}
+ncol(data)
+```
+
+First, we convert the binary variables that are considered numeric into binary:
+
+```{r}
+# Function to convert numeric columns with 2 distinct values to binary
+convert_to_binary <- function(dataframe) {
+  for (col in names(dataframe)) {
+    if (is.numeric(dataframe[[col]]) && length(unique(dataframe[[col]])) == 2) {
+      dataframe[[col]] <- as.factor(dataframe[[col]])
+    }
+  }
+  return(dataframe)
+}
+
+# Apply the function to your data frame
+data <- convert_to_binary(data)
+```
+```{r, include=FALSE}
+skimr::skim(data)
+```
+We have the following types of variables: 16 qualitative variables, 33 binary variables, and 73 numerical variables. 
+
+number and % of missing data per each variable:
+
+```{r, message=FALSE}
+missing.values.df <- as.data.frame(skimr::skim(data))
+missing.values.df <- missing.values.df[,2:3]
+missing.values.df$percentage_missing <- missing.values.df$n_missing / nrow(data) * 100
+missing.values.df
+```
+
+% of missing data in the whole data matrix:
+```{r}
+sum(missing.values.df$n_missing) / (ncol(data) * nrow(data)) * 100
+```
+
