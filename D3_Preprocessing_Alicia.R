@@ -265,3 +265,4 @@ densityplot(data$price, col = "blue", add = TRUE)
 columns_to_replace <- c("price", "n_enquiries", "job_duration")
 data[columns_to_replace] <- completeData[columns_to_replace]
 head(data)
+write.csv(data, "C:\\Users\\Airdac\\Documents\\GitHub\\bank_india\\2. Bank-India-preprocessed-data.csv")
