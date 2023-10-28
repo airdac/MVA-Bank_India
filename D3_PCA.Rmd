@@ -565,7 +565,7 @@ text(X,Y,labels=etiq,col="darkblue", cex=0.7)
 
 # Projecting the PCA in the Factorial plane.
 ```{r}
-plot(Psi[,eje1],Psi[,eje2],type="n", xlim = c(0,1), ylim = c(-1, 1),
+plot(Psi[,eje1],Psi[,eje2],type="n", xlim = c(-0.2,0.2), ylim = c(-0.2, 1),
      main = '', xlab = 'PC1', ylab='PC2')
 axis(side=1, pos= 0, labels = F)
 axis(side=3, pos= 0, labels = F)
@@ -634,8 +634,7 @@ axis(side=3, pos= 0, labels = F, col="cyan")
 axis(side=2, pos= 0, labels = F, col="cyan")
 axis(side=4, pos= 0, labels = F, col="cyan")
 
-text(fdic1,fdic2,labels=levels(varcat), col=c("green", "red"), 
-     cex=0.7)
+text(fdic1,fdic2,labels=levels(varcat), col=c("green", "red"), cex=0.7)
 ```
 
 # Adding categorical features in the factorial plan to find the correlation between variables.
@@ -760,7 +759,9 @@ for(j in 1:length(groups)){
 
 ```{r}
 # Plot the PCA plan
-plot(Psi[,eje1],Psi[,eje2])
+eje1 <- 1
+eje2 <- 2
+plot(Psi[,eje1],Psi[,eje2], xlab= "Economical stability", ylab = "Housemates", main = "Outliers")
 axis(side=1, pos= 0, labels = F, col="cyan")
 axis(side=3, pos= 0, labels = F, col="cyan")
 axis(side=2, pos= 0, labels = F, col="cyan")
@@ -778,6 +779,8 @@ ellipse <- data.frame(ellipse(df.center, df.cov, rad, 100, FALSE, col = "orange"
 
 
 # Then applying the Mahalanobis distance and the cut-off threshold, we'll find our data treated.
+```
+
 ```{r}
 # Applying the function
 distances <- mahalanobis(x = df, center = df.center, cov = df.cov)
@@ -790,7 +793,7 @@ df[distances > cutoff ,]
 
 # Displan only the observation within the distance
 df_clean <- df[distances < cutoff ,]
-plot(df_clean, type = "p")
+plot(df_clean, type = "p", main = "Data without outliers", xlab = "Economical stability", ylab = "Housemates")
 # text(Psi[,eje1],Psi[,eje2],labels=iden,  cex=0.5)
 axis(side=1, pos= 0, labels = F, col="cyan")
 axis(side=3, pos= 0, labels = F, col="cyan")
