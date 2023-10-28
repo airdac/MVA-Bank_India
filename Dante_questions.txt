@@ -12,7 +12,7 @@ put house as extra information (it's too centered on apartment)
 join levels other_a and other_b
 also with industry, trade and... (higher education:incomplete and lower)
 use burt table
-analysis only with 2 or 3 dimensions
+mca: analysis only with 2 or 3 dimensions
 compare pca and mca centroids
 
 all levels should have different names (even between different variables)
