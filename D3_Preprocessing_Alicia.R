@@ -10,15 +10,93 @@ library(class)
 library(MASS)
 library(mvnmle)
 library(devtools)
-source("functions.R")
+source("LittleMCAR function.R")
 library(ggplot2)
 library(misty)
 library(mice)
+library(skimr)
+library(VIM)
+library(cluster)
+require(StatMatch)
 
+#assume missings represented with NA
+uncompleteVar<-function(vector){any(is.na(vector))}
+
+# MIMMI
+MiMMi <- function(data, priork=-1)
+{
+  #Identify columns without missings
+  colsMiss<-which(sapply(data, uncompleteVar))
+  if(length(colsMiss)==0){
+    print("Non missing values found")
+    out<-dd
+  }else{
+    K<-dim(data)[2]
+    colsNoMiss<-setdiff(c(1:K),as.vector(colsMiss))
+    
+    #cluster with complete data
+    dissimMatrix <- daisy(data[,colsNoMiss], metric = "gower", stand=TRUE)
+    distMatrix<-dissimMatrix^2
+    
+    hcdata<-hclust(distMatrix, method = "ward.D2")
+    plot(hcdata)
+    nk<-2
+    if(priork==-1){
+      print("WARNING: See the dendrogramm and ZOOM if required")
+      print("and enter a high number of clusters")
+      nk<-readline("(must be a positive integer). k: ")
+      nk<-as.integer(nk)
+    }else{nk<-priork}
+    
+    partition<-cutree(hcdata, nk)
+    
+    CompleteData<-data
+    #nomes cal per tenir tra?a de com s'ha fet la substituci?
+    newCol<-K+1
+    CompleteData[,newCol]<-partition
+    names(CompleteData)[newCol]<-"ClassAux"
+    
+    setOfClasses<-as.numeric(levels(as.factor(partition)))
+    imputationTable<-data.frame(row.names=setOfClasses)
+    p<-1
+    
+    for(k in colsMiss)
+    {
+      #Files amb valors utils
+      rowsWithFullValues<-!is.na(CompleteData[,k])
+      
+      #calcular valors d'imputacio
+      if(is.numeric(CompleteData[,k]))
+      {
+        imputingValues<-aggregate(CompleteData[rowsWithFullValues,k], by=list(partition[rowsWithFullValues]), FUN=mean)
+      }else{
+        imputingValues<-aggregate(CompleteData[rowsWithFullValues,k], by=list(partition[rowsWithFullValues]), FUN=Mode)
+      }
+      
+      #Impute
+      
+      for(c in setOfClasses)
+      {
+        CompleteData[is.na(CompleteData[,k]) & partition==c,k]<-imputingValues[c,2]
+      }
+      
+      #Imputation Table
+      imputationTable[,p]<-imputingValues[,2]
+      names(imputationTable)[p]<-names(data)[k]
+      p<-p+1
+    }
+    
+    rownames(imputationTable)<-paste0("c", 1:nk)
+    out<-new.env()
+    out$imputedData<-CompleteData
+    out$imputation<-imputationTable
+  }
+  return(out)
+}
 
 
 # LOAD DATA
-data <- read.csv("Bank-India-raw-data.csv")
+data <- read.csv("1. Bank-India-raw-data.csv")
 summary(data)
 
 ##### PREPROCESSING  #####
