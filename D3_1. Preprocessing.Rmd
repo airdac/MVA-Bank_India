@@ -3,19 +3,35 @@ title: "Preprocessing MVA-11-BANK-INDIA"
 author: "Adrià Casanova Lloveras"
 date: "2023-10-26"
 output: pdf_document
+editor_options: 
+  chunk_output_type: console
 ---
+
+```{r}
+# Clear plots
+if(!is.null(dev.list())) dev.off()
+
+# Clean workspace
+rm(list=ls())
+```
+
 
 # Library importation
 ```{r Libraries, include=FALSE}
-library(dplyr)
 library(tidyverse)
-library(skimr)
-library(VIM)
-library(mice)
-library(cluster)
+library(memisc)
+library(dplyr) 
+library(recipes)
+library(stats)
+library(caret)
+library(class)
+library(MASS)
+library(mvnmle)
+library(devtools)
 library(ggplot2)
-library(car)
-require(StatMatch)
+library(misty)
+library(mice)
+source("LittleMCAR function.R")  # Import LittleMCAR function from the folder.
 ```
 
 
@@ -23,7 +39,7 @@ require(StatMatch)
 
 # Read data
 ```{r}
-data <- read.csv("Bank-India-data.csv")
+data <- read.csv("1. Bank-India-raw-data.csv")
 
 summary(data)
 ```
@@ -40,14 +56,35 @@ names(data) <- c("id", "target", "contract", "gender", "car", "n_child",
 names(data)
 ```
 
-# Rename the categorical feature in a more concise name
+# Rename the categorical feature in a more concise name, and group them into bigger sets.
 ```{r}
+data$job_type <- sub(":.*", "", data$job_type)
+data$companion[data$companion %in% c("Other_A", "Other_B", "Group_people")] <- "Other_companion"
+data$family[data$family %in% c("Civil marriage")] <- "Married"
+data$occupation[data$occupation %in% c("Accountants", "Secretaries","HR staff") ] <- "Administrative Staff"
+data$occupation[data$occupation %in% c("High skill tech staff", "IT staff") ] <- "Tech Staff"
+data$occupation[data$occupation %in% c("Low-skill Laborers", "Laborers") ] <- "Laborers"
+data$occupation[data$occupation %in% c("Cleaning staff", "Chef","Drivers","Waiters") ] <- "Service Staff"
+
+data$studies[data$studies %in% c("Incomplete higher","Lower secondary")] <- "Low education"
+data$studies[data$studies %in% c("Secondary / secondary special")] <- "Secondary education"
+data$studies[data$studies %in% c("Higher edu." = "Higher education","Academic degree")] <- "Higher education"
+
+data$job_type[data$job_type %in% c("Business Entity Type 1", "Business Entity Type 2", "Business Entity Type 3")] <- "Business"
+data$job_type[data$job_type %in% c("Advertising", "Bank", "Business") ] <- "Business"
+data$job_type[data$job_type %in% c("Culture", "Electricity", "Emergency", "Hotel", "Industry","Legal Services", "Services", "Restaurant", "School", "Kindergarten", "Other") ] <- "Culture and Services"
+data$job_type[data$job_type %in% c("Government", "Military", "Security Ministries", "Police", "Postal") ] <- "Government and Military"
+data$job_type[data$job_type %in% c("Realtor", "Trade", "Telecom") ] <- "Real Estate and Trade"
+data$companion[data$companion %in% c("Children", "Family")] <- "Family"
+
+
+# recode shorter name some modalities
 data$job_stat <- fct_recode(data$job_stat, "Commer. Assoc." = "Commercial associate")
 data$family <- fct_recode(data$family,  "single" = "Single / not married", "divorce" = "Separated")
 data$house <- fct_recode(data$house, "apartment" = "House / apartment", "Municipal apart." = "Municipal apartment", "Rented apart."="Rented apartment", "Office apart."="Office apartment", "Co-op apart."="Co-op apartment")
-data$occupation <- fct_recode(data$occupation, "High-tech stf" = "High skill tech staff", "Medic stf" = "Medicine staff", "Chef" = "Cooking staff", "Security" = "Security staff", "Waiters" = "Waiters/barmen staff", "Low-skill labor." = "Low-skill Laborers", "Private ser." = "Private service staff")
+data$occupation <- fct_recode(data$occupation, "Medic stf" = "Medicine staff", "Chef" = "Cooking staff", "Security" = "Security staff", "Waiters" = "Waiters/barmen staff", "Private ser." = "Private service staff")
 data$companion <- fct_recode(data$companion, "Partner" = "Spouse, partner", "Unaccompan." = "Unaccompanied", "Group_people" = "Group of people")
-data$studies <- fct_recode(data$studies, "Secondary" = "Secondary / secondary special", "Higher edu." = "Higher education")
+
 ```
 
 # Transform the numerical & characters into factor.
@@ -58,6 +95,7 @@ data$target <- factor(data$target, levels = c(0,1), labels = c("payed","overdue"
 # convert character feature (such as gender, car or contract type) -> as factor:
 char_cols <- which(sapply(data, is.character))
 data[, char_cols] <- lapply(data[, char_cols], as.factor)
+
 
 # Review if the transformation has executed properly
 str(data)
@@ -104,11 +142,6 @@ summary(data)
 
 # The variables that have (other) : occupation, job_type,companion: means that there are more classes. Let's explore them: 
 ```{r}
-
-# What does the following code do?
-# data <- data %>%
-#  mutate_all(~replace(., . == "XNA", "Unknown"))
-# print(unique(data$occupation))
 names(table(data$occupation))
 names(table(data$job_type))
 names(table(data$companion))
@@ -125,83 +158,8 @@ missing_perc = na_perc + unknown_perc
 ```
 
 # Attention, there is only one numerical variable with missing values: 'n_enquiries'. Percentage of missing values:
-# What's the purpose of this line?
 ```{r}
 689/nrow(data)*100
-```
-
-# As we were not able to install the BaylorEdPsych package, we had to copy the function here:
-```{r, include=FALSE}
-LittleMCAR<-function(x){
- if (!require(mvnmle)) 
-	stop("You must have mvnmle installed to use LittleMCAR")
- if (!(is.matrix(x) | is.data.frame(x))) 
-        stop("Data should be a matrix or dataframe")
-if (is.data.frame(x)) 
-        x <- data.matrix(x)
-# define variables        
-n.var<-ncol(x) # number of variables
-n<-nrow(x)  #number of respondents
-var.names<-colnames(x)
-r <- 1 * is.na(x)
-nmis <- as.integer(apply(r, 2, sum))  #number of missing data for each variable
-mdp <- (r %*% (2^((1:n.var - 1)))) + 1  #missing data patterns
-x.mp<-data.frame(cbind(x,mdp))
-colnames(x.mp)<-c(var.names,"MisPat")
-n.mis.pat<-length(unique(x.mp$MisPat)) # number of missing data patterns
-p<-n.mis.pat-1
-gmean<-mlest(x)$muhat #ML estimate of grand mean (assumes Normal dist)
-gcov<-mlest(x)$sigmahat #ML estimate of grand covariance (assumes Normal dist)
-colnames(gcov)<-rownames(gcov)<-colnames(x)
-
-#recode MisPat variable to go from 1 through n.mis.pat
-x.mp$MisPat2<-rep(NA,n)
-for (i in 1:n.mis.pat){
-x.mp$MisPat2[x.mp$MisPat == sort(unique(x.mp$MisPat), partial=(i))[i]]<- i
-}
-x.mp$MisPat<-x.mp$MisPat2
-x.mp<-x.mp[ , -which(names(x.mp) %in% "MisPat2")]
-
-#make list of datasets for each pattern of missing data
-datasets<-list() 
-for (i in 1:n.mis.pat){
-datasets[[paste("DataSet",i,sep="")]]<-x.mp[which(x.mp$MisPat==i),1:n.var]
-}
-
-#degrees of freedom
-kj<-0
-for (i in 1:n.mis.pat){	
-no.na<-as.matrix(1* !is.na(colSums(datasets[[i]])))
-kj<-kj+colSums(no.na)
-}
-df<-kj -n.var
-
-#Little's chi-square
-d2<-0
-cat("this could take a while")
-for (i in 1:n.mis.pat){	
-mean<-(colMeans(datasets[[i]])-gmean)
-mean<-mean[!is.na(mean)]
-keep<-1* !is.na(colSums(datasets[[i]]))
-keep<-keep[which(keep[1:n.var]!=0)]
-cov<-gcov 
-cov<-cov[which(rownames(cov) %in% names(keep)) , which(colnames(cov) %in% names(keep))]
-d2<-as.numeric(d2+(sum(x.mp$MisPat==i)*(t(mean)%*%solve(cov)%*%mean)))
-}
-
-#p-value for chi-square
-p.value<-1-pchisq(d2,df)
-
-#descriptives of missing data
-amount.missing<-matrix(nmis, 1, length(nmis))
-percent.missing<-amount.missing/n
-amount.missing<-rbind(amount.missing,percent.missing)
-colnames(amount.missing)<-var.names
-rownames(amount.missing)<-c("Number Missing", "Percent Missing")
-
-list(chi.square=d2, df=df, p.value=p.value, missing.patterns=n.mis.pat, amount.missing=amount.missing, data=datasets)
-
-}
 ```
 
 # Run the little test to see if the missing value are MCAR, MAR or MNAR type
@@ -213,6 +171,8 @@ little.test$chi.square
 ```
 
 # Data is NOT missing completely at random as p-value is 0.
+
+# We assume that is at RANDOM : then we have to impute
 ```{r}
 little.test$p.value
 ```
@@ -225,16 +185,17 @@ little.test$missing.patterns
 ```{r}
 little.test$amount.missing
 ```
+
+
+######  Preprocessing - Data Imputation #######
+
+# Only select numerical variables
 ```{r}
-# select numerical variables
 numerical_data <- data %>%
   select_if(is.numeric)
 
 md.pattern(numerical_data)
 ```
-
-
-######  Preprocessing - Data Imputation #######
 
 # Use MICE to impute the data
 ```{r}

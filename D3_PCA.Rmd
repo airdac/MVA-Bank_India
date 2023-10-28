@@ -13,7 +13,7 @@ library(car)
 
 # Read data
 ```{r}
-df <- read.csv("Bank-India-preprocessed-data.csv")
+df <- read.csv("2. Bank-India-preprocessed-data.csv")
 data = df
 ```
 

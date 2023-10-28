@@ -73,6 +73,7 @@ mosaicplot(con1)
 
 chisq.test(con1)
 
+
 ```
 
 
@@ -148,35 +149,24 @@ Percentage of missing values:
 library(ggplot2)
 ```
 
-Find relation between age and n_child
+
 ```{r}
+
+
+
 # df <- data.frame(data$n_child, age)
 
 # Calculate the average age for each n_child value
 avg_age <- tapply(data$age, data$n_child, mean)
-regression_model <- lm(data$age ~ data$n_child, data = data)
-```
 
-```{r}
 # Create the scatter plot
 plot(names(avg_age), avg_age, xlab = "n_child", ylab = "Average Age", main = "Average Age vs. n_child")
+
+regression_model <- lm(data$age ~ data$n_child, data = data)
+
 abline(regression_model, col = "blue")
-```
 
-Plot avg(age) ~ n_child
-```{r}
-par(mfrow=c(1,1))
 plot (data$n_child, data$age)
+
 ```
 
-Regression model results
-```{r}
-regression_model
-summary(regression_model)
-```
-
-Regression model plots
-```{r}
-par(mfrow=c(2,2))
-plot(regression_model)
-```
