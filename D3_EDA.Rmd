@@ -1,0 +1,89 @@
+---
+title: "EDA"
+output: html_document
+date: "2023-10-28"
+---
+
+First we import the database before and after the imputation to perform
+a EDA analysis with SmartDEA library
+
+```{r}
+library(SmartEDA) 
+
+db_original = read.csv("Bank-India-raw-data.csv")
+db_imputed = read.csv("Bank-India-preprocessed-data.csv")
+
+ExpReport(db_original, op_file = 'SmartEDA_original.html4')
+ExpReport(db_imputed, op_file = 'SmartEDA_imputed.html4')
+
+```
+
+We can also do the analysis for the two groups of the target variable
+
+```{r}
+# Find all rows where people did not pay the rend
+
+debtors = db_imputed[which(db_imputed$target == "overdue"),]
+payers = db_imputed[which(db_imputed$target == "payed"),]
+
+barplot(debtors$companion)
+plot(payers$job_type)
+
+ExpReport(debtors, op_file = 'SmartEDA_debtors.html')
+ExpReport(payers, op_file = 'SmartEDA_payers.html')
+```
+
+As distributions seems not-normal we can do several normality tests to check it.
+The null hypotesis is "normality"
+
+```{r}
+shapiro.test(db_imputed$age)
+
+ks.test(db_imputed$loan, "pnorm")
+
+#this can be done for all numerical variables, the result is the same
+```
+
+Lets try to compare the distribution of a variable with a normal distribution
+to check the tests visually
+
+
+```{r}
+a = plot(density(log(db_imputed$price)), col = "blue", lwd = 2,
+     main = 'Comparison of a normal distribution (red) and "price" (blue)',
+     xlab = 'Price') # Densidad
+x = log(db_imputed$price)
+x2 <- seq(min(x), max(x), length = 40)
+f <- dnorm(x2, mean(x), sd(x))
+lines(x2, f, col = "red", lwd = 3, type = 'l') # Normal
+```
+# Correlation of variables
+For numerical variables, we can use the "pearson" coefficient to detect if
+two variables are correlated
+
+```{r}
+library(corrplot)
+
+numeriques <- which(sapply(db_imputed,is.numeric))
+
+corrplot(cor(db_imputed[,numeriques]),
+         method = "number",
+         type = "upper" # show only upper side
+)
+
+```
+
+Using the DEA reports, we see that it may be interesting to plot income and loan
+
+```{r}
+plot(db_imputed$income, db_imputed$loan, col=c("black", "red") [factor(db_imputed$target)],
+     xlab = 'Income', ylab = 'Loan')
+legend("topright", legend=c("Payed", "Overdue"), col=c("black", "red"), pch = 1)
+```
+
+
+
+
+
+
+
