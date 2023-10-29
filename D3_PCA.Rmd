@@ -43,30 +43,17 @@ pc1
 ```{r}
 numeriques
 ```
-```{r}
-barplot_x <- barplot(100*(pc1$sdev[1:dim(dcon)[2]]^2)/dim(dcon)[2], main = 
-        'Inertia of principal components', 
-        names.arg = c("PC1", "PC2", "PC3", "PC4", "PC5",
-        "PC6", "PC7", "PC8"), ylab = "Inertia (%)", ylim = c(0,40))
-axis(side=2, at=(seq(0, 100, by=10)), labels = FALSE)
-barplot_y <- round(as.matrix(100*(pc1$sdev[1:dim(dcon)[2]]^2)/dim(dcon)[2]), digits = 1)
-
-text(barplot_x,barplot_y+2,labels=as.character(barplot_y))
-```
-
-
 
 
 # Accumulated Inertia
 ```{r}
-barplot_x <- barplot(100*cumsum(pc1$sdev[1:dim(dcon)[2]]^2)/dim(dcon)[2], main = 
-        'Accumulated inertia of principal components', 
+barplot(100*cumsum(pc1$sdev[1:dim(dcon)[2]]^2)/dim(dcon)[2], main = 
+        'Analysis of principal components', 
         names.arg = c("PC1", "PC2", "PC3", "PC4", "PC5",
-        "PC6", "PC7", "PC8"), ylab = "Accumulated inertia (%)", ylim = c(0,110))
-axis(side=2, at=(seq(0, 100, by=10)), labels = FALSE)
-barplot_y <- round(as.matrix(100*cumsum(pc1$sdev[1:dim(dcon)[2]]^2)/dim(dcon)[2]), digits = 1)
-text(barplot_x,barplot_y+5,labels=as.character(barplot_y))
+        "PC6", "PC7", "PC8"), ylab = "Cumulative total inertia (%)")
+
 abline(80,0, col = "blue", lwd = 2, lty = 2)
+axis(side=2, at=(seq(0, 100, by=10)), labels = FALSE)
 
 ```
 
@@ -150,7 +137,7 @@ text(X,Y,labels=etiq,col="darkblue", cex=0.7)
 
 plot(Psi[,eje1],Psi[,eje2],type="n", xlim = c(0.94,0.96), ylim = c(0.02, 0.05),
      xlab = "Economic stability", ylab='# Family members', main =
-      "Price and credit on Factorial plane of PC1 and PC2")
+      "Numerical Variables on Factorial plane of PC1 and PC2")
 axis(side=1, pos= 0, labels = F)
 axis(side=3, pos= 0, labels = F)
 axis(side=2, pos= 0, labels = F)
@@ -535,8 +522,8 @@ text(X,Y,labels=etiq,col="darkblue", cex=0.7)
 
 # Projecting the PCA in the Factorial plane.
 ```{r}
-plot(Psi[,eje1],Psi[,eje2],type="n", xlim = c(0,1), ylim = c(-.5, 1), xlab = 'Economic stability', ylab='PC3', main =
-       "Numerical Variables on Factorial plane of PC1 and PC3")
+plot(Psi[,eje1],Psi[,eje2],type="n", xlim = c(0,1), ylim = c(-1, 1),
+     main = '', xlab = 'PC1', ylab='PC2')
 axis(side=1, pos= 0, labels = F)
 axis(side=3, pos= 0, labels = F)
 axis(side=2, pos= 0, labels = F)
@@ -582,8 +569,7 @@ fdic2 = tapply(Psi[,eje2],varcat,mean)
 
 varcat=factor(data[,2])
 plot(Psi[,1],Psi[,2], pch=c(20,20) [varcat], col=c("darkblue", "red") [varcat],
-     xlab = 'Economic stability', ylab = 'PC3', main = 
-       'Individuals on Factorial plane of PC1 and PC3')
+     xlab = 'PC1', ylab = 'PC2')
 axis(side=1, pos= 0, labels = F, col="black")
 axis(side=3, pos= 0, labels = F, col="black")
 axis(side=2, pos= 0, labels = F, col="black")
@@ -599,8 +585,7 @@ text(fdic1,fdic2,labels=levels(varcat), col=c("green", "green"),
 # If we take a loop in the centroid of distribution of "paid" and "overdue", where's the result.
 ```{r, include=FALSE}
 
-plot(Psi[,eje1],Psi[,eje2],type="n", xlim= c(-1,1), ylim = c(-1,1), xlab = 'Economic stability', ylab = 'PC3', main = 
-       'Target on Factorial plane of PC1 and PC3')
+plot(Psi[,eje1],Psi[,eje2],type="n", xlim= c(-1,1), ylim = c(-1,1))
 axis(side=1, pos= 0, labels = F, col="cyan")
 axis(side=3, pos= 0, labels = F, col="cyan")
 axis(side=2, pos= 0, labels = F, col="cyan")
@@ -641,8 +626,7 @@ legend("bottomleft",names(data)[dcat],pch=1,col=colors, cex=0.6)
 dcat <- c(2:5,11:14,17:18,20)
 colors<-rainbow(length(dcat))
 
-plot(Psi[,eje1],Psi[,eje2], type = "n", xlim = c(-1.5,1.5), ylim = c(-.7,.7), xlab = 'Economic stability', ylab = 'PC3', main = 
-       'Modalities on Factorial plane of PC1 and PC3')
+plot(Psi[,eje1],Psi[,eje2], type = "n", xlim = c(-1.5,1.5), ylim = c(-.7,.7))
 axis(side=1, pos= 0, labels = F, col="cyan")
 axis(side=3, pos= 0, labels = F, col="cyan")
 axis(side=2, pos= 0, labels = F, col="cyan")
@@ -764,8 +748,8 @@ text(X,Y,labels=etiq,col="darkblue", cex=0.7)
 
 # Projecting the PCA in the Factorial plane.
 ```{r}
-plot(Psi[,eje1],Psi[,eje2],type="n", xlim = c(-1,1), ylim = c(-0.2, 1), xlab = '# Family members', ylab='PC3', main = "Numerical
-     Variables on Factorial plane of PC2 and PC3")
+plot(Psi[,eje1],Psi[,eje2],type="n", xlim = c(-1,1), ylim = c(-0.2, 1),
+     main = '', xlab = 'PC1', ylab='PC2')
 axis(side=1, pos= 0, labels = F)
 axis(side=3, pos= 0, labels = F)
 axis(side=2, pos= 0, labels = F)
@@ -789,8 +773,8 @@ fdic1 = tapply(Psi[,eje1],varcat,mean)
 fdic2 = tapply(Psi[,eje2],varcat,mean) 
 
 varcat=factor(data[,2])
-plot(Psi[,eje1],Psi[,eje2], pch=c(20,20) [varcat], col=c("darkblue", "red") [varcat], xlab = '# Family members', ylab='PC3', main = "Individuals
-     on Factorial plane of PC2 and PC3")
+plot(Psi[,eje1],Psi[,eje2], pch=c(20,20) [varcat], col=c("darkblue", "red") [varcat],
+     xlab = 'PC1', ylab = 'PC2')
 axis(side=1, pos= 0, labels = F, col="black")
 axis(side=3, pos= 0, labels = F, col="black")
 axis(side=2, pos= 0, labels = F, col="black")
@@ -806,8 +790,7 @@ text(fdic1,fdic2,labels=levels(varcat), col=c("green", "green"),
 # If we take a loop in the centroid of distribution of "paid" and "overdue", where's the result.
 ```{r, include=FALSE}
 
-plot(Psi[,eje1],Psi[,eje2],type="n", xlim= c(-1,1), ylim = c(-1,1), xlab = '# Family members', ylab='PC3', main = "Target
-     on Factorial plane of PC2 and PC3")
+plot(Psi[,eje1],Psi[,eje2],type="n", xlim= c(-1,1), ylim = c(-1,1))
 axis(side=1, pos= 0, labels = F, col="cyan")
 axis(side=3, pos= 0, labels = F, col="cyan")
 axis(side=2, pos= 0, labels = F, col="cyan")
@@ -844,9 +827,7 @@ legend("bottomleft",names(data)[dcat],pch=1,col=colors, cex=0.6)
 
 # A zoom is required 
 ```{r, include=FALSE}
-plot(Psi[,eje1],Psi[,eje2], type = "n", xlim = c(-2.5,2), ylim = c(-.7,.7),
-     xlab = "# Family members", ylab = "PC3", main = 
-       "Modalities on Factorial plane of PC2 and PC3")
+plot(Psi[,eje1],Psi[,eje2], type = "n", xlim = c(-2.5,2), ylim = c(-.7,.7))
 axis(side=1, pos= 0, labels = F, col="cyan")
 axis(side=3, pos= 0, labels = F, col="cyan")
 axis(side=2, pos= 0, labels = F, col="cyan")
