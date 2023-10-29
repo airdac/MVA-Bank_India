@@ -13,12 +13,14 @@ library(factoextra)
 library(corrplot)
 library(devtools)
 library(gridExtra)
+library(Matrix)
+library(factoextra)
+library(corrplot)
 
 # the data from the preprocess....
 data
 
 #################################### MCA
-library(FactoMineR)
 # Remember that MCA is only done with CATEGORICAL variables. 
 summary(data)
 sapply(data,class)
@@ -35,7 +37,7 @@ ft
 which(names(data)=="job_type");which(names(data)=="house");which(names(data)=="job_stat");which(names(data)=="companion")
 data_w_used_categoricals<- data[c(-1,-18,-14,-11,-20)]
 numeriques<-which(sapply(data_w_used_categoricals,is.numeric))
-res.mca <- MCA(dt,quanti.sup =numeriques, quali.sup=c(1,14),method="Burt", graph = FALSE) #mca
+res.mca <- MCA(data_w_used_categoricals,quanti.sup =numeriques, quali.sup=c(1,14),method="Burt", graph = FALSE) #mca
 
 #### summary of the dimensions
 dimdesc(res.mca)
@@ -50,7 +52,7 @@ fviz_contrib(res.mca, choice = "var", axes = 1:2, top = 15) # most influential m
 fviz_screeplot(res.mca, addlabels = TRUE, ylim = c(0, 30))
 
 fviz_mca_var(res.mca, col.var = "contrib",
-             select.var = list(contrib = 10),
+             select.var = list(contrib = 11),
              gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"), 
              repel = TRUE, # avoid text overlapping (slow)
              ggtheme = theme_minimal()
@@ -105,10 +107,12 @@ plotellipses(res.mca,keepvar=c("quali"))
 fviz_ellipses(res.mca, c("occupation", "target"),
               geom = "point")
 
+fviz_ellipses(res.mca, c("contract", "target"),
+              geom = "point")
+
 # plot dim 1 with 3 (kind of similar conclusions)
 fviz_mca_var(res.mca, axes = c(1, 3),col.var = "contrib",
              gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"), 
              repel = TRUE, # avoid text overlapping (slow)
              ggtheme = theme_minimal()
 )
-
