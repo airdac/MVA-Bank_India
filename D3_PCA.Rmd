@@ -40,6 +40,11 @@ pc1 <- prcomp(dcon, scale=TRUE)
 pc1
 ```
 
+```{r}
+numeriques
+```
+
+
 # Accumulated Inertia
 ```{r}
 barplot(100*cumsum(pc1$sdev[1:dim(dcon)[2]]^2)/dim(dcon)[2], main = 
@@ -101,7 +106,7 @@ text(X,Y,labels=etiq,col="darkblue", cex=0.7)
 # Projecting the PCA in the Factorial plane.
 ```{r}
 plot(Psi[,eje1],Psi[,eje2],type="n", xlim = c(0,1), ylim = c(-1, 1),
-     xlab = "Economical stability", ylab='# Family members', main =
+     xlab = "Economic stability", ylab='# Family members', main =
        "Numerical Variables on Factorial plane of PC1 and PC2")
 axis(side=1, pos= 0, labels = F)
 axis(side=3, pos= 0, labels = F)
@@ -119,7 +124,7 @@ text(-0.65,-0.7,
 # Zoom to see the variables aggregated in the negative side of the first component
 ```{r, include=FALSE}
 plot(Psi[,eje1],Psi[,eje2],type="n", xlim = c(0.7,1), ylim = c(-0.2, 0.2),
-     xlab = "Economical stability", ylab='# Family members', main =
+     xlab = "Economic stability", ylab='# Family members', main =
        "Numerical Variables on Factorial plane of PC1 and PC2")
 axis(side=1, pos= 0, labels = F)
 axis(side=3, pos= 0, labels = F)
@@ -131,7 +136,7 @@ text(X,Y,labels=etiq,col="darkblue", cex=0.7)
 # Check that there are not more variables aggregated close to "loan"
 
 plot(Psi[,eje1],Psi[,eje2],type="n", xlim = c(0.94,0.96), ylim = c(0.02, 0.05),
-     xlab = "Economical stability", ylab='# Family members', main =
+     xlab = "Economic stability", ylab='# Family members', main =
       "Numerical Variables on Factorial plane of PC1 and PC2")
 axis(side=1, pos= 0, labels = F)
 axis(side=3, pos= 0, labels = F)
@@ -152,7 +157,7 @@ fdic2 = tapply(Psi[,eje2],varcat,mean)
 
 varcat=factor(data[,2])
 plot(Psi[,1],Psi[,2], pch=c(20,20) [varcat], col=c("darkblue", "red") [varcat],
-     xlab = "Economical stability", ylab='# Family members', main =
+     xlab = "Economic stability", ylab='# Family members', main =
       "Individuals on Factorial plane of PC1 and PC2")
 axis(side=1, pos= 0, labels = F, col="black")
 axis(side=3, pos= 0, labels = F, col="black")
@@ -170,7 +175,7 @@ text(fdic1,fdic2,labels=levels(varcat), col=c("green", "green"),
 ```{r, include=FALSE}
 
 plot(Psi[,eje1],Psi[,eje2],type="n", xlim= c(-1,1), ylim = c(-1,1),
-     xlab = "Economical stability", ylab='# Family members', main =
+     xlab = "Economic stability", ylab='# Family members', main =
       "Target on Factorial plane of PC1 and PC2")
 axis(side=1, pos= 0, labels = F, col="cyan")
 axis(side=3, pos= 0, labels = F, col="cyan")
@@ -210,7 +215,7 @@ legend("bottomleft",names(data)[dcat],pch=1,col=colors, cex=0.6)
 # A zoom is required 
 ```{r, include=FALSE}
 plot(Psi[,eje1],Psi[,eje2], type = "n", xlim = c(-3,2), ylim = c(-2,3),
-     xlab = "Economical stability", ylab='# Family members', main =
+     xlab = "Economic stability", ylab='# Family members', main =
       "Modalities on Factorial plane of PC1 and PC2")
 axis(side=1, pos= 0, labels = F, col="cyan")
 axis(side=3, pos= 0, labels = F, col="cyan")
@@ -236,12 +241,13 @@ legend("bottomleft",names(data)[dcat],pch=1,col=colors, cex=0.6)
 # We are plotting too many modalities, so next we will plot them separately.
 # Note: There is a bug in the visualization. The last plot seems smaller but when you save the figure all of them have the same size
 ```{r}
-groups <- list(c(2:5), c(11:13), 14, 17, 18, 20)
+groups <- list(c(2:5), c(2,11:13), c(2,14), c(2,17), c(2,18), c(2,20))
 
 for(j in 1:length(groups)){
-  colors <- c("red", "blue", "darkgreen")
+  colors <- c("red", "blue", "darkgreen", "black")
   
-  plot(Psi[,eje1],Psi[,eje2], type = "n", xlim = c(-3,2), ylim = c(-2,3))
+  plot(Psi[,eje1],Psi[,eje2], type = "n", xlim = c(-2,2), ylim = c(-2,2),
+       xlab = "Economic stability", ylab='# Family members')
   axis(side=1, pos= 0, labels = F, col="cyan")
   axis(side=3, pos= 0, labels = F, col="cyan")
   axis(side=2, pos= 0, labels = F, col="cyan")
@@ -263,6 +269,165 @@ for(j in 1:length(groups)){
 
 
 ```
+Now we'll split occupation and job_type plots to distinguish better their modalities 
+
+```{r}
+# occupation 1
+j <- 4
+
+colors <- c("red", "blue", "darkgreen", "black")
+  
+plot(Psi[,eje1],Psi[,eje2], type = "n", xlim = c(-1,1.5), ylim = c(-1,1),
+     xlab = "Economic stability", ylab='# Family members')
+axis(side=1, pos= 0, labels = F, col="cyan")
+axis(side=3, pos= 0, labels = F, col="cyan")
+axis(side=2, pos= 0, labels = F, col="cyan")
+axis(side=4, pos= 0, labels = F, col="cyan")
+  
+  # Loop to add all categories of this group
+  seguentColor<-colors[1]
+  fdic1 = tapply(Psi[,eje1],data[,2],mean)
+  fdic2 = tapply(Psi[,eje2],data[,2],mean) 
+  split = length(fdic1)
+  
+  text(fdic1[1:split],fdic2[1:split],labels=levels(factor(data[,2]))[1:split],col=seguentColor, 
+       cex=0.6)
+  
+  seguentColor<-colors[2]
+  fdic1 = tapply(Psi[,eje1],data[,17],mean)
+  fdic2 = tapply(Psi[,eje2],data[,17],mean) 
+  split = length(fdic1)/2
+  
+  text(fdic1[1:split],fdic2[1:split],labels=levels(factor(data[,17]))[1:split],col=seguentColor, 
+       cex=0.6)
+
+legend("bottomleft",names(data)[groups[[j]]],pch=1,col=colors, cex=0.6)
+```
+```{r}
+# occupation 2
+j <- 4
+
+colors <- c("red", "blue", "darkgreen", "black")
+  
+plot(Psi[,eje1],Psi[,eje2], type = "n", xlim = c(-1,1), ylim = c(-1,.5),
+     xlab = "Economic stability", ylab='# Family members')
+axis(side=1, pos= 0, labels = F, col="cyan")
+axis(side=3, pos= 0, labels = F, col="cyan")
+axis(side=2, pos= 0, labels = F, col="cyan")
+axis(side=4, pos= 0, labels = F, col="cyan")
+  
+  # Loop to add all categories of this group
+  seguentColor<-colors[1]
+  fdic1 = tapply(Psi[,eje1],data[,2],mean)
+  fdic2 = tapply(Psi[,eje2],data[,2],mean) 
+  split = length(fdic1)
+  
+  text(fdic1[1:split],fdic2[1:split],labels=levels(factor(data[,2]))[1:split],col=seguentColor, 
+       cex=0.6)
+  
+  seguentColor<-colors[2]
+  fdic1 = tapply(Psi[,eje1],data[,17],mean)
+  fdic2 = tapply(Psi[,eje2],data[,17],mean) 
+  split = length(fdic1)/2 + 1
+  end_ind = length(fdic1)
+  
+  text(fdic1[split:end_ind],fdic2[split:end_ind],labels=levels(factor(data[,17]))[split:end_ind],col=seguentColor, 
+       cex=0.6)
+
+legend("bottomleft",names(data)[groups[[j]]],pch=1,col=colors, cex=0.6)
+```
+```{r}
+# job_type 1
+j <- 5
+
+colors <- c("red", "blue", "darkgreen", "black")
+  
+plot(Psi[,eje1],Psi[,eje2], type = "n", xlim = c(-1.5,1), ylim = c(-.8,.2),
+     xlab = "Economic stability", ylab='# Family members')
+axis(side=1, pos= 0, labels = F, col="cyan")
+axis(side=3, pos= 0, labels = F, col="cyan")
+axis(side=2, pos= 0, labels = F, col="cyan")
+axis(side=4, pos= 0, labels = F, col="cyan")
+  
+  # Loop to add all categories of this group
+  seguentColor<-colors[1]
+  fdic1 = tapply(Psi[,eje1],data[,2],mean)
+  fdic2 = tapply(Psi[,eje2],data[,2],mean) 
+  split = length(fdic1)
+  
+  text(fdic1[1:split],fdic2[1:split],labels=levels(factor(data[,2]))[1:split],col=seguentColor, 
+       cex=0.6)
+  
+  seguentColor<-colors[2]
+  fdic1 = tapply(Psi[,eje1],data[,18],mean)
+  fdic2 = tapply(Psi[,eje2],data[,18],mean) 
+  split = length(fdic1)/2
+  
+  text(fdic1[1:split],fdic2[1:split],labels=levels(factor(data[,18]))[1:split],col=seguentColor, 
+       cex=0.6)
+
+legend("bottomleft",names(data)[groups[[j]]],pch=1,col=colors, cex=0.6)
+```
+
+```{r}
+# job_type 2
+j <- 5
+
+colors <- c("red", "blue", "darkgreen", "black")
+  
+plot(Psi[,eje1],Psi[,eje2], type = "n", xlim = c(-.6,.6), ylim = c(-2,2),
+     xlab = "Economic stability", ylab='# Family members')
+axis(side=1, pos= 0, labels = F, col="cyan")
+axis(side=3, pos= 0, labels = F, col="cyan")
+axis(side=2, pos= 0, labels = F, col="cyan")
+axis(side=4, pos= 0, labels = F, col="cyan")
+  
+  # Loop to add all categories of this group
+  seguentColor<-colors[1]
+  fdic1 = tapply(Psi[,eje1],data[,2],mean)
+  fdic2 = tapply(Psi[,eje2],data[,2],mean) 
+  split = length(fdic1)
+  
+  text(fdic1[1:split],fdic2[1:split],labels=levels(factor(data[,2]))[1:split],col=seguentColor, 
+       cex=0.6)
+  
+  seguentColor<-colors[2]
+  fdic1 = tapply(Psi[,eje1],data[,18],mean)
+  fdic2 = tapply(Psi[,eje2],data[,18],mean) 
+  split = length(fdic1)/2 + 1
+  end_ind = length(fdic1)
+  
+  text(fdic1[split:end_ind],fdic2[split:end_ind],labels=levels(factor(data[,18]))[split:end_ind],col=seguentColor, 
+       cex=0.6)
+
+legend("bottomleft",names(data)[groups[[j]]],pch=1,col=colors, cex=0.6)
+```
+```{r}
+j <- 6
+colors <- c("red", "blue", "darkgreen", "black")
+  
+plot(Psi[,eje1],Psi[,eje2], type = "n", xlim = c(-.6,.5), ylim = c(-.5,.5),
+     xlab = "Economic stability", ylab='# Family members')
+axis(side=1, pos= 0, labels = F, col="cyan")
+axis(side=3, pos= 0, labels = F, col="cyan")
+axis(side=2, pos= 0, labels = F, col="cyan")
+axis(side=4, pos= 0, labels = F, col="cyan")
+  
+  # Loop to add all categories of this group
+  c <- 1
+  for(k in groups[[j]]){
+    seguentColor<-colors[c]
+    fdic1 = tapply(Psi[,eje1],data[,k],mean)
+    fdic2 = tapply(Psi[,eje2],data[,k],mean) 
+    
+    text(fdic1,fdic2,labels=levels(factor(data[,k])),col=seguentColor, 
+         cex=0.6)
+    c <- c+1
+  }
+legend("bottomleft",names(data)[groups[[j]]],pch=1,col=colors, cex=0.6)
+```
+
+
 
 # Numerical variables and centroids of desired categorical variables
 # Several maps are created to see relations
@@ -458,7 +623,10 @@ legend("bottomleft",names(data)[dcat],pch=1,col=colors, cex=0.6)
 
 # A zoom is required 
 ```{r, include=FALSE}
-plot(Psi[,eje1],Psi[,eje2], type = "n", xlim = c(-3,2), ylim = c(-2,3))
+dcat <- c(2:5,11:14,17:18,20)
+colors<-rainbow(length(dcat))
+
+plot(Psi[,eje1],Psi[,eje2], type = "n", xlim = c(-1.5,1.5), ylim = c(-.7,.7))
 axis(side=1, pos= 0, labels = F, col="cyan")
 axis(side=3, pos= 0, labels = F, col="cyan")
 axis(side=2, pos= 0, labels = F, col="cyan")
@@ -488,7 +656,7 @@ groups <- list(c(2:5), c(11:13), 14, 17, 18, 20)
 for(j in 1:length(groups)){
   colors <- c("red", "blue", "darkgreen")
   
-  plot(Psi[,eje1],Psi[,eje2], type = "n", xlim = c(-3,2), ylim = c(-2,3))
+  plot(Psi[,eje1],Psi[,eje2], type = "n", xlim = c(-1.5,1.5), ylim = c(-.7,.7))
   axis(side=1, pos= 0, labels = F, col="cyan")
   axis(side=3, pos= 0, labels = F, col="cyan")
   axis(side=2, pos= 0, labels = F, col="cyan")
@@ -580,7 +748,7 @@ text(X,Y,labels=etiq,col="darkblue", cex=0.7)
 
 # Projecting the PCA in the Factorial plane.
 ```{r}
-plot(Psi[,eje1],Psi[,eje2],type="n", xlim = c(-0.2,0.2), ylim = c(-0.2, 1),
+plot(Psi[,eje1],Psi[,eje2],type="n", xlim = c(-1,1), ylim = c(-0.2, 1),
      main = '', xlab = 'PC1', ylab='PC2')
 axis(side=1, pos= 0, labels = F)
 axis(side=3, pos= 0, labels = F)
@@ -595,27 +763,6 @@ text(-0.65,-0.7,
 # "price" and "credit" overlap because one is the price of the good to purchase, while credit is the loan the client requests.
 ```
 
-# Zoom to see the variables aggregated in the negative side of the first component
-```{r, include=FALSE}
-plot(Psi[,eje1],Psi[,eje2],type="n", xlim = c(0.7,1), ylim = c(-0.2, 0.2))
-axis(side=1, pos= 0, labels = F)
-axis(side=3, pos= 0, labels = F)
-axis(side=2, pos= 0, labels = F)
-axis(side=4, pos= 0, labels = F)
-arrows(ze, ze, X, Y, length = 0.07,col="blue")
-text(X,Y,labels=etiq,col="darkblue", cex=0.7)
-
-# Check that there are not more variables aggregated close to "loan"
-
-plot(Psi[,eje1],Psi[,eje2],type="n", xlim = c(0.85,1), ylim = c(-0.1, 0))
-axis(side=1, pos= 0, labels = F)
-axis(side=3, pos= 0, labels = F)
-axis(side=2, pos= 0, labels = F)
-axis(side=4, pos= 0, labels = F)
-arrows(ze, ze, X, Y, length = 0.07,col="blue")
-text(X,Y,labels=etiq,col="darkblue", cex=0.7)
-```
-
 # To have a better understanding of the factorial planes the target variable "pay" was added into the map. Note that the figure shows that there is a difference on loans that are "payed" or "overdue"
 
 ```{r}
@@ -626,7 +773,7 @@ fdic1 = tapply(Psi[,eje1],varcat,mean)
 fdic2 = tapply(Psi[,eje2],varcat,mean) 
 
 varcat=factor(data[,2])
-plot(Psi[,1],Psi[,2], pch=c(20,20) [varcat], col=c("darkblue", "red") [varcat],
+plot(Psi[,eje1],Psi[,eje2], pch=c(20,20) [varcat], col=c("darkblue", "red") [varcat],
      xlab = 'PC1', ylab = 'PC2')
 axis(side=1, pos= 0, labels = F, col="black")
 axis(side=3, pos= 0, labels = F, col="black")
@@ -680,7 +827,7 @@ legend("bottomleft",names(data)[dcat],pch=1,col=colors, cex=0.6)
 
 # A zoom is required 
 ```{r, include=FALSE}
-plot(Psi[,eje1],Psi[,eje2], type = "n", xlim = c(-3,2), ylim = c(-2,3))
+plot(Psi[,eje1],Psi[,eje2], type = "n", xlim = c(-2.5,2), ylim = c(-.7,.7))
 axis(side=1, pos= 0, labels = F, col="cyan")
 axis(side=3, pos= 0, labels = F, col="cyan")
 axis(side=2, pos= 0, labels = F, col="cyan")
@@ -710,7 +857,7 @@ groups <- list(c(2:5), c(11:13), 14, 17, 18, 20)
 for(j in 1:length(groups)){
   colors <- c("red", "blue", "darkgreen")
   
-  plot(Psi[,eje1],Psi[,eje2], type = "n", xlim = c(-3,2), ylim = c(-2,3))
+  plot(Psi[,eje1],Psi[,eje2], type = "n", xlim = c(-2.5,2), ylim = c(-.7,.7))
   axis(side=1, pos= 0, labels = F, col="cyan")
   axis(side=3, pos= 0, labels = F, col="cyan")
   axis(side=2, pos= 0, labels = F, col="cyan")
@@ -768,76 +915,6 @@ for(j in 1:length(groups)){
 
 ```
 
-##### Outlier detection #####
-
-# Once we have the PCA (1rst and 2n component), we can use Mahalanobis distance to detect outlier using with a cutoff of 95%. The orange elipse circle project the 95% of confidence level, while the record outside the surface will be considered as outlier
-
-```{r}
-# Plot the PCA plan
-eje1 <- 1
-eje2 <- 2
-plot(Psi[,eje1],Psi[,eje2], xlab= "Economical stability", ylab = "# Family members", main = "Outliers")
-axis(side=1, pos= 0, labels = F, col="cyan")
-axis(side=3, pos= 0, labels = F, col="cyan")
-axis(side=2, pos= 0, labels = F, col="cyan")
-axis(side=4, pos= 0, labels = F, col="cyan")
-
-# Defining the parameter for Mahalanobis distance
-df <- Psi[,eje1:eje2]
-df.center <- colMeans(df)
-df.cov <- cov(df)
-rad <- sqrt(qchisq(0.95, df = ncol(df)))
-
-
-# Plotting the ellipse of Mahalanobis distance
-ellipse <- data.frame(ellipse(df.center, df.cov, rad, 100, FALSE, col = "orange", fill=TRUE))
-
-
-# Then applying the Mahalanobis distance and the cut-off threshold, we'll find our data treated.
-```
-
-```{r}
-# Applying the function
-distances <- mahalanobis(x = df, center = df.center, cov = df.cov)
-
-# Defining the Cut-off trigger using Chi-square distance with p = 0.95 df = 2 which in ncol(df)
-cutoff <- qchisq(p = 0.95 , df = ncol(df))
-
-# Display all the observations whose distance is greater than the cut-off value.
-df[distances > cutoff ,]
-
-# Displan only the observation within the distance
-df_clean <- df[distances < cutoff ,]
-plot(df_clean, type = "p", main = "Data without outliers", xlab = "Economical stability", ylab = "# Family members")
-# text(Psi[,eje1],Psi[,eje2],labels=iden,  cex=0.5)
-axis(side=1, pos= 0, labels = F, col="cyan")
-axis(side=3, pos= 0, labels = F, col="cyan")
-axis(side=2, pos= 0, labels = F, col="cyan")
-axis(side=4, pos= 0, labels = F, col="cyan")
-```
-
-
-```{r}
-#select other axes
-
-eje1 = 3
-eje2 = 4
-
-X<-Phi[,eje1]
-Y<-Phi[,eje2]
-
-plot(Psi[,eje1],Psi[,eje2],type="n", xlim = c(-.2,1), ylim = c(-1,.2))
-axis(side=1, pos= 0, labels = F)
-axis(side=3, pos= 0, labels = F)
-axis(side=2, pos= 0, labels = F)
-axis(side=4, pos= 0, labels = F)
-arrows(ze, ze, X, Y, length = 0.07,col="blue")
-text(X,Y,labels=etiq,col="darkblue", cex=0.7)
-```
-It seems that the 4th axis is only related with the id attribute, while the 3rd
-might be how often the client accesses the bank. Since they are only
-related to variables we already possess, we can conclude that these 
-factorial axes aren't relevant in our analysis.
 
 Find relation between age and n_child
 ```{r}
