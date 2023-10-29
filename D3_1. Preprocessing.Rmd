@@ -117,21 +117,20 @@ data$age<-floor(abs(data$age) / 365)
 data$job_duration[which(data$job_duration == 365243)] <- NA
 data$job_duration <- (abs(data$job_duration) / 365) # job duration in years
 data$job_type <- as.character(data$job_type)
-data$job_type[which(data$job_type == "XNA")] <- "Unknown"
+data$job_type[which(data$job_type == "XNA")] <- "Jobtype_Unknown"
 data$job_type <- as.factor(data$job_type)
 
 data$gender <- as.character(data$gender)
-data$gender[which(data$gender == "XNA")] <- "Unknown"
+data <- data[!(data$gender == "XNA"), ]
 data$gender <- as.factor(data$gender)
 
 data$occupation <- as.character(data$occupation)
-data$occupation[which(data$occupation == "")] <- "Unknown"
+data$occupation[which(data$occupation == "")] <- "Occupation_Unknown"
 data$occupation <- as.factor(data$occupation)
 
 data$companion <- as.character(data$companion)
-data$companion[which(data$companion == "")] <- "Unknown"
+data$companion[which(data$companion == "")] <- "Companion_Unknown"
 data$companion <- as.factor(data$companion)
-
 ```
 
 # Check if the values and NA's are correctly saved
@@ -151,8 +150,8 @@ names(table(data$companion))
 ```{r}
 missing.values.data <-  as.data.frame(skimr::skim(data))
 na_perc = sum(missing.values.data$n_missing) / (ncol(data) * nrow(data)) * 100
-unknown_count = sum(data$job_type == "Unknown", na.rm = T) + sum(data$gender == "Unknown") +
-  sum(data$occupation == "Unknown") + sum(data$companion == "Unknown")
+unknown_count = sum(data$job_type == "Jobtype_Unknown", na.rm = T) +
+  sum(data$occupation == "Occupation_Unknown") + sum(data$companion == "Companion_Unknown")
 unknown_perc = unknown_count / (ncol(data) * nrow(data)) * 100
 missing_perc = na_perc + unknown_perc
 ```
@@ -365,3 +364,5 @@ columns_to_replace <- c("price", "n_enquiries", "job_duration")
 data[columns_to_replace] <- completeData[columns_to_replace]
 head(data)
 ```
+```
+
