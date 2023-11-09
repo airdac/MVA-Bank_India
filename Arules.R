@@ -3,14 +3,11 @@ library(arules)
 library("arulesViz")
 #some databases that are in form of transactions --> Read arules pdf users instructions
 
-data("Epub")
-data("Groceries")
-data("Adult")
 
 #setwd your own working directory to import the database
 #How to work with associations rules with data matrix
 
-dd <- read.table("credscoClean.csv",header=T, stringsAsFactors=TRUE, sep=";");
+dd <- read.table("2.Bank_India_preprocessed_data.csv",header=T, stringsAsFactors=TRUE, sep=",")
 
 #Selecting categorical variables
 dcat<-dd[,sapply(dd, is.factor)]
@@ -20,16 +17,6 @@ dcat<-dd[,sapply(dd, is.factor)]
 
 dtrans<-as(dcat, "transactions")
 
-#Checking levels
-length(levels(dcat$Dictamen))
-#[1] 2
-length(levels(dcat$Vivienda))
-#[1] 7
-length(levels(dcat$Estado.civil))
-#[1] 6
-length(levels(dcat$Registros))
-#[1] 2
-length(levels(dcat$Tipo.trabajo))
 #[1] 5
 
 foo<-function(x){length(levels(x))}
@@ -39,18 +26,9 @@ sum(sapply(dcat, foo))
 dtrans
 inspect(head(dtrans,10))
 summary(dtrans)
-dim(dtrans)
-plot(size(dtrans))
-plot(size(Groceries))
-transactionInfo(Epub[1:10])
 
-inspect(dtrans[1:10])
-
-itemFrequencyPlot(Groceries, support=0.1, cex.names = 1)
-itemFrequencyPlot(Groceries, support=0.05, cex.names = 1)
-itemFrequencyPlot(Groceries, topN=5, cex.names = 1)
-itemFrequencyPlot(dtrans, topN=5, cex.names = 1)
-itemFrequencyPlot(dtrans, support=0.1, cex.names = 1)
+itemFrequencyPlot(dtrans, topN=5)
+itemFrequencyPlot(dtrans, support = 0.3)
 
 #Apriori
 ?apriori
@@ -58,57 +36,45 @@ itemFrequencyPlot(dtrans, support=0.1, cex.names = 1)
 #minlen : minimun number of items
 
 rulesDtrans <- apriori(dtrans, parameter = list(support = 0.1, confidence = 0.5,  minlen=2))
-rulesEpub <- apriori(Epub, parameter = list(sup = 0.1, conf = 0.5, target="rules", minlen=1))
-rulesGroceries <- apriori(Groceries, parameter = list(sup = 0.01, conf = 0.5,  minlen=2))
-rulesGroceries
-summary(rulesGroceries)
-inspect(rulesGroceries)
 summary(rulesDtrans)
-inspect(rulesDtrans)
-items<-apriori(dtrans, parameter = list(sup = 0.2,  target="frequent itemsets", minlen=2))
-inspect(items)
+inspect(head(rulesDtrans,n=25, by="lift"))
+# It looks like the set of Pensioners is the same as the set of people who
+# didn't tell their job type. Indeed, it is true.
+pensioners = which(dcat$job_stat=="Pensioner")
+unk_jobtype = which(dcat$job_type=="Jobtype_Unknown")
+setdiff(pensioners, unk_jobtype)
+setdiff(unk_jobtype, pensioners)
 
+payedRules <- sort(subset(rulesDtrans, subset = rhs %in% "target=payed"), by = "confidence")
+summary(payedRules)   # lift is too low
+
+overdueRules <- sort(subset(rulesDtrans, subset = rhs %in% "target=overdue"), by = "confidence")
+summary(overdueRules)   # None found
+
+# Non redundant rules
+nonredundant <- rulesDtrans[!is.redundant(rulesDtrans),]
+summary(nonredundant)
+inspect(head(rulesDtrans,n=25, by="lift"))
+
+payedRules <- sort(subset(rulesDtrans, subset = rhs %in% "target=payed"), by = "confidence")
+summary(payedRules)   # lift is too low
+inspect(head(payedRules, n=25, by="lift"))
+
+overdueRules <- sort(subset(rulesDtrans, subset = rhs %in% "target=overdue"), by = "confidence")
+summary(overdueRules)   # None found
+
+
+# These are useless because lift is too low
 rulesDtrans <- apriori(dtrans, parameter = list(support = 0.4, confidence = 0.8,  minlen=2))
-inspect(rulesDtrans)
+summary(rulesDtrans)
+inspect(head(rulesDtrans,n=25, by="lift"))
 
-inspect(head(rulesDtrans,n=3, by="lift"))
 
-data("Groceries")
-mbarules<-apriori(Groceries, parameter = list (support=0.01, confidence=0.1, maxlen = 2))
-inspect(head(mbarules,n=10, by="lift"))
-inspect(head(mbarules,n=10, by="confidence"))
-mbaitemsets<-apriori(Groceries, parameter = list (support=0.01, confidence=0.1, maxlen = 2, target="frequent"))
-inspect(head(mbaitemsets,n=10, by="support"))
-
-#Searching for redundant rules
-
-#
-subset.matrix <- is.subset(rulesDtrans,rulesDtrans,sparse = F)
-subset.matrix[lower.tri(subset.matrix,diag=T)] <- NA
-redundant <- colSums(subset.matrix,na.rm=T)>=1
-which(redundant)
-
-#Removing redundant rules
-
-rules.pruned <- rulesDtrans[!redundant]
-rules.pruned <- sort(rules.pruned,by="lift")
-inspect(rules.pruned)
-
-###You can use is.redundant and similar instructions to improve your analysis
-### See the links of examples (English and Spanish Version)
-### These links offers a way to summarize your Analysis
-#### ********** https://rpubs.com/Buczman/AssociationRules
-####*           https://rpubs.com/Joaquin_AR/397172
-####These links is very useful to filter rules
-##################################### according to your requirements, check "FILTRADO
-##################################### DE REGLAS
-
-###
 ### Saving results
-write(rules.pruned, file = "rules.csv", sep = ",", col.names = NA)
+# write(rules.pruned, file = "rules.csv", sep = ",", col.names = NA)
 
 
-#ECLAT
+#ECLAT (where are the itemsets with k>1?)
 
 eclatDTrans<-eclat(dtrans)
 eclatDTrans<-eclat(dtrans, parameter = list(support=0.4, minlen=1, maxlen=10))
@@ -139,7 +105,7 @@ as(items(top5), "matrix")
 as(items(top5), "ngCMatrix")
 
 ###Visualizing Results
-inspect(rulesDtrans)
+# inspect(rulesDtrans)
 plot(rulesDtrans, measure = c("support", "lift"), shading = "confidence")
 #order == number of items inside the rules
 plot(rulesDtrans, method = "two-key plot")
