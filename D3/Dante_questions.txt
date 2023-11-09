@@ -1,0 +1,20 @@
+- MCA
+- Little's test for categorical variables
+- We think younger clients tend to have more children. How can we test it?
+
+
+
+
+don't include id in the analysis
+put occupation and job_type as extra information (they have too many levels)
+a lot of married people (keep it)
+put house as extra information (it's too centered on apartment)
+join levels other_a and other_b
+also with industry, trade and... (higher education:incomplete and lower)
+use burt table
+mca: analysis only with 2 or 3 dimensions
+compare pca and mca centroids
+
+all levels should have different names (even between different variables)
+
+on PCA plot modalities on top of individuals, which are colored by their target modality
