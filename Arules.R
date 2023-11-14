@@ -77,7 +77,7 @@ inspect(head(rulesDtrans,n=25, by="lift"))
 #ECLAT (where are the itemsets with k>1?)
 
 eclatDTrans<-eclat(dtrans)
-eclatDTrans<-eclat(dtrans, parameter = list(support=0.4, minlen=1, maxlen=10))
+eclatDTrans<-eclat(dtrans, parameter = list(support=0.4, minlen=2, maxlen=10))
 inspect(eclatDTrans)
 
 ## Select a subset of rules using partial matching on the items 
@@ -85,8 +85,9 @@ inspect(eclatDTrans)
 
 
 ## Mine frequent itemsets with Eclat.
-eclatDTrans <- eclat(dtrans, parameter = list(supp = 0.5))
+eclatDTrans <- eclat(dtrans, parameter = list(supp = 0.5, confidence = 0.8))
 
+#ruleInduction() !!!
 ## Display the 5 itemsets with the highest support.
 orderedItemsets <- sort(eclatDTrans)
 inspect(orderedItemsets)
