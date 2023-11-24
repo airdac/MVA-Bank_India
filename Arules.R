@@ -1,3 +1,10 @@
+# Clear plots
+if(!is.null(dev.list())) dev.off()
+
+# Clean workspace
+rm(list=ls())
+
+
 #library of Association rules
 library(arules)
 library("arulesViz")
@@ -31,13 +38,77 @@ itemFrequencyPlot(dtrans, topN=5)
 itemFrequencyPlot(dtrans, support = 0.3)
 
 #Apriori
-?apriori
+#?apriori
 
 #minlen : minimun number of items
 
-rulesDtrans <- apriori(dtrans, parameter = list(support = 0.1, confidence = 0.5,  minlen=2))
-summary(rulesDtrans)
-inspect(head(rulesDtrans,n=25, by="lift"))
+rules <- apriori(dtrans, parameter =
+                      list(support = 0.01, confidence = 0.7, minlen=2, maxlen = 11))
+good.rules <- subset(rules, subset = lift > 1)
+# Delete rules with a low support added multiple times
+# good.rules <- unique(good.rules)
+
+inspect(head(good.rules, n=10, by = "lift"))
+# Highest lift rules are trivial, since they relate people with the same
+# occupation and job_type. This was expected because these variables tell a
+# similar information
+
+# Before doing any feature selection, let us remove redundant rules
+nonredundant <- good.rules[!is.redundant(good.rules),]
+summary(nonredundant)
+inspect(head(nonredundant,n=10, by="lift"))
+
+length(good.rules)
+length(nonredundant)
+good.rules <- nonredundant
+
+# Most rules have turned out to be redundant
+
+# All rules with a lift higher than 17 are trivial
+# The most relevant rule is that the set of pensioners is exactly the set
+# of people with job type unknown. Indeed:
+
+pensioners = which(dcat$job_stat=="Pensioner")
+unk_jobtype = which(dcat$job_type=="Jobtype_Unknown")
+setdiff(pensioners, unk_jobtype)
+setdiff(unk_jobtype, pensioners)
+
+inspect(sort(good.rules, by="lift")[9:30,])
+# Many rules associate people with unknown occupation and pensioners. Let's
+# look at their setdiff()
+
+unk_occupation <- which(dcat$occupation == "Occupation_Unknown")
+setdiff(pensioners, unk_occupation)
+setdiff(unk_occupation, pensioners)
+length(setdiff(unk_occupation, pensioners))
+# All pensioners declared their occupation as unknown. However, 675 individuals
+# didn't tell their occupation and weren't pensioners.
+
+# Now we will analyze the category Occupation_Unknown.
+unk.occup.not.pensioner <- subset(good.rules, subset =
+                                    lhs %in% "occupation=Occupation_Unknown" & 
+                                    !(rhs %in% "job_stat=Pensioner") &
+                                    !(rhs %in% "job_type=Jobtype_Unknown"))
+inspect(head(unk.occup.not.pensioner, n=10, by="lift"))
+# Too complicated 
+
+
+# WE WILL CONTINUE NEXT DAY
+# - Balance target in the database
+# - Study rules with rhs %in%% "target"
+# - Check more rules with few items with different supports
+
+
+
+
+
+
+
+
+
+
+
+
 # It looks like the set of Pensioners is the same as the set of people who
 # didn't tell their job type. Indeed, it is true.
 pensioners = which(dcat$job_stat=="Pensioner")
