@@ -36,6 +36,8 @@ summary(dtrans)
 
 itemFrequencyPlot(dtrans, topN=5)
 itemFrequencyPlot(dtrans, support = 0.3)
+# As we already knew, our target is unbalanced, so later we will rebalance
+# our database to analyze the target.
 
 #Apriori
 #?apriori
@@ -45,8 +47,6 @@ itemFrequencyPlot(dtrans, support = 0.3)
 rules <- apriori(dtrans, parameter =
                       list(support = 0.01, confidence = 0.7, minlen=2, maxlen = 11))
 good.rules <- subset(rules, subset = lift > 1)
-# Delete rules with a low support added multiple times
-# good.rules <- unique(good.rules)
 
 inspect(head(good.rules, n=10, by = "lift"))
 # Highest lift rules are trivial, since they relate people with the same
@@ -84,79 +84,90 @@ length(setdiff(unk_occupation, pensioners))
 # All pensioners declared their occupation as unknown. However, 675 individuals
 # didn't tell their occupation and weren't pensioners.
 
-# Now we will analyze the category Occupation_Unknown.
+# Now we will analyze the category unk_occupation.
 unk.occup.not.pensioner <- subset(good.rules, subset =
                                     lhs %in% "occupation=Occupation_Unknown" & 
                                     !(rhs %in% "job_stat=Pensioner") &
                                     !(rhs %in% "job_type=Jobtype_Unknown"))
 inspect(head(unk.occup.not.pensioner, n=10, by="lift"))
-# Too complicated 
+unk.occup.not.pensioner2 <- subset(good.rules, subset =
+                                    lhs %in% "occupation=Occupation_Unknown" & 
+                                    !(rhs %in% "job_stat=Pensioner") &
+                                    !(rhs %in% "job_type=Jobtype_Unknown") &
+                                    size(lhs) <= 1)
+inspect(head(unk.occup.not.pensioner2, n=10, by="lift"))
+
+# We'll try now to reverse the rules
+unk.occup.not.pensioner3 <- subset(good.rules, subset =
+                                    rhs %in% "occupation=Occupation_Unknown" & 
+                                    !(lhs %in% "job_stat=Pensioner") &
+                                    !(lhs %in% "job_type=Jobtype_Unknown") &
+                                     size(lhs) <= 5)
+inspect(head(unk.occup.not.pensioner2, n=10, by="lift"))
+
+unk.occup.not.pensioner4 <- subset(good.rules, subset =
+                                     rhs %in% "occupation=Occupation_Unknown" & 
+                                     !(lhs %in% "job_stat=Pensioner") &
+                                     !(lhs %in% "job_type=Jobtype_Unknown") &
+                                     size(lhs) <= 4)
+inspect(head(unk.occup.not.pensioner4, n=10, by="lift"))
+# We can't describe in a confident and simple way the individuals with unknown
+# occupation who aren't pensioners
+
+# We'll study nowthe simplest rules
+rules2 <- apriori(dtrans, parameter =
+                   list(support = 0.01, confidence = 0.7, minlen=2, maxlen = 2))
+good.rules2 <- subset(rules2, subset = lift > 1)
+
+inspect(head(good.rules2, n=10, by = "lift"))
+# Highest lift rules are trivial, since they relate people with the same
+# occupation and job_type. This was expected because these variables tell a
+# similar information
+
+# Before doing any feature selection, let us remove redundant rules
+nonredundant2 <- good.rules2[!is.redundant(good.rules2),]
+summary(nonredundant2)
+inspect(head(nonredundant2,n=10, by="lift"))
+
+length(good.rules2)
+length(nonredundant2)
+good.rules2 <- nonredundant2
+
+inspect(head(good.rules2, n=25, by="lift"))
+# With these simple rules, we are able to describe better our individuals by
+# gender and the jobs that make job_stat=Working up. Other categories we understand
+# better now are car=N and studies = Secondary education.
+# However, these rules are not relevant for our goals in this analysis. Moreover,
+# none of them have a big lift value.
+
+# We will study now our target.
+payedRules <- sort(subset(good.rules, subset = rhs %in% "target=payed"), by = "lift")
+summary(payedRules)
+inspect(head(payedRules, n=10, by="lift"))
+payedRules2 <- sort(subset(good.rules, subset = lhs %in% "target=payed"), by = "lift")
+inspect(head(payedRules2, n=10, by="lift"))
+payedRules3 <- sort(subset(good.rules, subset = lhs %in% "target=payed" &
+                             size(lhs) <= 2), by = "lift")
+inspect(head(payedRules3, n=10, by="lift"))
+overdueRules <- sort(subset(good.rules, subset = rhs %in% "target=overdue"), by = "lift")
+summary(overdueRules)
+overdueRules2 <- sort(subset(good.rules, subset = lhs %in% "target=overdue"), by = "lift")
+summary(overdueRules2)
+overdueRules3 <- sort(subset(good.rules, subset = lhs %in% "target=overdue" &
+                             size(lhs) <= 2), by = "lift")
+inspect(head(overdueRules3, n=10, by="lift"))
+# We have not found any good rule, so we need to balance our dataset. We will do
+# it in another script
 
 
-# WE WILL CONTINUE NEXT DAY
-# - Balance target in the database
-# - Study rules with rhs %in%% "target"
-# - Check more rules with few items with different supports
-
-
-
-
-
-
-
-
-
-
-
-
-# It looks like the set of Pensioners is the same as the set of people who
-# didn't tell their job type. Indeed, it is true.
-pensioners = which(dcat$job_stat=="Pensioner")
-unk_jobtype = which(dcat$job_type=="Jobtype_Unknown")
-setdiff(pensioners, unk_jobtype)
-setdiff(unk_jobtype, pensioners)
-
-payedRules <- sort(subset(rulesDtrans, subset = rhs %in% "target=payed"), by = "confidence")
-summary(payedRules)   # lift is too low
-
-overdueRules <- sort(subset(rulesDtrans, subset = rhs %in% "target=overdue"), by = "confidence")
-summary(overdueRules)   # None found
-
-# Non redundant rules
-nonredundant <- rulesDtrans[!is.redundant(rulesDtrans),]
-summary(nonredundant)
-inspect(head(rulesDtrans,n=25, by="lift"))
-
-payedRules <- sort(subset(rulesDtrans, subset = rhs %in% "target=payed"), by = "confidence")
-summary(payedRules)   # lift is too low
-inspect(head(payedRules, n=25, by="lift"))
-
-overdueRules <- sort(subset(rulesDtrans, subset = rhs %in% "target=overdue"), by = "confidence")
-summary(overdueRules)   # None found
-
-
-# These are useless because lift is too low
-rulesDtrans <- apriori(dtrans, parameter = list(support = 0.4, confidence = 0.8,  minlen=2))
-summary(rulesDtrans)
-inspect(head(rulesDtrans,n=25, by="lift"))
 
 
 ### Saving results
-# write(rules.pruned, file = "rules.csv", sep = ",", col.names = NA)
+# write(good.rules, file = "rules.csv", sep = ",", col.names = NA)
 
-
-#ECLAT (where are the itemsets with k>1?)
-
-eclatDTrans<-eclat(dtrans)
-eclatDTrans<-eclat(dtrans, parameter = list(support=0.4, minlen=2, maxlen=10))
-inspect(eclatDTrans)
 
 ## Select a subset of rules using partial matching on the items 
 ## in the right-hand-side and a quality measure
-
-
-## Mine frequent itemsets with Eclat.
-eclatDTrans <- eclat(dtrans, parameter = list(supp = 0.5, confidence = 0.8))
 
 #ruleInduction() !!!
 ## Display the 5 itemsets with the highest support.
