@@ -159,40 +159,35 @@ inspect(head(overdueRules3, n=10, by="lift"))
 # We have not found any good rule, so we need to balance our dataset. We will do
 # it in another script
 
-
-
-
-### Saving results
-# write(good.rules, file = "rules.csv", sep = ",", col.names = NA)
-
-
-## Select a subset of rules using partial matching on the items 
-## in the right-hand-side and a quality measure
-
-#ruleInduction() !!!
-## Display the 5 itemsets with the highest support.
-orderedItemsets <- sort(eclatDTrans)
-inspect(orderedItemsets)
-
-top5 <- sort(eclatDTrans)[1:5]
-inspect(top5)
-
-## Get the itemsets as a list
-as(items(top5), "list")
-
-## Get the itemsets as a binary matrix
-as(items(top5), "matrix")
-
-## Get the itemsets as a sparse matrix, a ngCMatrix from package Matrix.
-## Warning: for efficiency reasons, the ngCMatrix you get is transposed 
-as(items(top5), "ngCMatrix")
-
 ###Visualizing Results
-# inspect(rulesDtrans)
-plot(rulesDtrans, measure = c("support", "lift"), shading = "confidence")
+plot(good.rules, measure = c("support", "lift"), shading = "confidence")
 #order == number of items inside the rules
-plot(rulesDtrans, method = "two-key plot")
-plot(rulesDtrans, method = "grouped")
-plot(rulesDtrans, method = "paracoord")
+plot(good.rules, method = "two-key plot")
+plot(good.rules, method = "grouped")
+# TOO SLOW  plot(good.rules, method = "paracoord")
+# We will try to make the plot with less rules increasing the support
+rules.bsup <- apriori(dtrans, parameter =
+                   list(support = 0.01, confidence = 0.7, minlen=2, maxlen = 11))
+good.rules.bsup <- subset(rules.bsup, subset = lift > 2)
 
-###Check the suggested links to get a friendly and visual analysis of your results
+inspect(head(good.rules.bsup, n=10, by = "lift"))
+# Highest lift rules are trivial, since they relate people with the same
+# occupation and job_type. This was expected because these variables tell a
+# similar information
+
+# Before doing any feature selection, let us remove redundant rules
+nonredundant.bsup <- good.rules.bsup[!is.redundant(good.rules.bsup),]
+summary(nonredundant.bsup)
+inspect(head(nonredundant.bsup,n=10, by="lift"))
+
+length(good.rules.bsup)
+length(nonredundant.bsup)
+good.rules.bsup <- nonredundant.bsup
+# plot(good.rules.bsup, method = "paracoord")
+
+top10 <- sort(good.rules2, by="lift")[1:10]
+
+plot(top10, method="graph", shading = "lift")
+
+# THIS FINAL PLOT SEEMS VERY USEFUL TO SHOW THE CONCLUSIONS WE HAVE ARRIVED TO
+# DURING THE ANALYSIS. WE SHALL USE IT IN THE REPORT ONLY IN THE RELEVANT POINTS
