@@ -1,0 +1,24 @@
+# importing the library
+
+```{r}
+library(MASS)
+library(biotools)
+```
+
+
+# Importing the data and clean the worksapce
+
+```{r}
+# Clear plots
+if(!is.null(dev.list())) dev.off()
+
+# Clean workspace
+rm(list=ls())
+
+data <- read.table("2.Bank_India_preprocessed_data.csv",header=T, stringsAsFactors=TRUE, sep=",")
+
+
+```
+
+
+
