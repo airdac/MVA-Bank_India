@@ -1,8 +1,14 @@
+---
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
 # importing the library
 
 ```{r}
 library(MASS)
 library(biotools)
+library(candisc)
 ```
 
 
@@ -15,10 +21,47 @@ if(!is.null(dev.list())) dev.off()
 # Clean workspace
 rm(list=ls())
 
-data <- read.table("2.Bank_India_preprocessed_data.csv",header=T, stringsAsFactors=TRUE, sep=",")
+data <- read.table("2.Bank_India_preprocessed_data.csv",header=T, stringsAsFactors=TRUE, sep=","); summary(data)
+```
 
+
+```{r}
+# Here we can see the output of the PCA 
+numeriques <- which(sapply(data,is.numeric))
+# We don't include id for the analysis
+numeriques = numeriques[-1]
+# Pick those numerical features
+dcon <- data[,c(2,numeriques)]
+
+```
+
+```{r}
+# Let's check the first model with all the numerical variables included.
+target.lda = lda(target~., data = dcon); target.lda
+
+```
+
+# It only return LD1, because there is only two group of result, paid or overdue
+
+```{r}
+
+predict.lda = predict(target.lda, dcon)
+summary(predict.lda)
+
+dcon[,10] = predict.lda$x[,1]
+
+names(dcon)[10] = "LDA1"
+```
+
+```{r}
+par(mar=c(3,2.5,1.5,1))
+
+ldahist(data = dcon[,10], g = dcon$target,ymax = 1)
 
 ```
 
 
+```{r}
+
+```
 
