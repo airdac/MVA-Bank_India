@@ -123,7 +123,7 @@ h1 <- hclust(distMatrix,method="ward.D")  # NOTICE THE COST
 versions noves "ward.D" i abans de plot: par(mar=rep(2,4)) si se quejara de los margenes del plot
 
 ```{r}
-plot(h1)
+#plot(h1)
 
 c2 <- cutree(h1,4)
 ```
@@ -250,21 +250,21 @@ for(k in 1:K){
    print(append("Categories=",levels(as.factor(dades[,k]))))
 
    #from next plots, select one of them according to your practical case
-   plot(marg,type="l",ylim=c(0,1),main=paste("Prop. of pos & neg by",names(dades)[k]))
-   paleta<-rainbow(length(levels(dades[,k])))
-   for(c in 1:length(levels(dades[,k]))){lines(colperc[,c],col=paleta[c]) }
+   #plot(marg,type="l",ylim=c(0,1),main=paste("Prop. of pos & neg by",names(dades)[k]))
+   #paleta<-rainbow(length(levels(dades[,k])))
+   #for(c in 1:length(levels(dades[,k]))){lines(colperc[,c],col=paleta[c]) }
 
    #with legend
-   plot(marg,type="l",ylim=c(0,1),main=paste("Prop. of pos & neg by",names(dades)[k]))
-   paleta<-rainbow(length(levels(dades[,k])))
-   for(c in 1:length(levels(dades[,k]))){lines(colperc[,c],col=paleta[c]) }
-   legend("topright", levels(dades[,k]), col=paleta, lty=2, cex=0.6)
+   #plot(marg,type="l",ylim=c(0,1),main=paste("Prop. of pos & neg by",names(dades)[k]))
+   #paleta<-rainbow(length(levels(dades[,k])))
+   #for(c in 1:length(levels(dades[,k]))){lines(colperc[,c],col=paleta[c]) }
+   #legend("topright", levels(dades[,k]), col=paleta, lty=2, cex=0.6)
    
    #condicionades a classes
    print(append("Categories=",levels(dades[,k])))
-   plot(marg,type="n",ylim=c(0,1),main=paste("Prop. of pos & neg by",names(dades)[k]))
-   paleta<-rainbow(length(levels(dades[,k])))
-   for(c in 1:length(levels(dades[,k]))){lines(rowperc[,c],col=paleta[c]) }
+   #plot(marg,type="n",ylim=c(0,1),main=paste("Prop. of pos & neg by",names(dades)[k]))
+   #paleta<-rainbow(length(levels(dades[,k])))
+   #for(c in 1:length(levels(dades[,k]))){lines(rowperc[,c],col=paleta[c]) }
    
    #with legend
    plot(marg,type="n",ylim=c(0,1),main=paste("Prop. of pos & neg by",names(dades)[k]))
@@ -275,11 +275,11 @@ for(k in 1:K){
    #amb variable en eix d'abcisses
    marg <-table(dades[,k])/n
       print(append("Categories=",levels(dades[,k])))
-      plot(marg,type="l",ylim=c(0,1),main=paste("Prop. of pos & neg by",names(dades)[k]), las=3)
+      #plot(marg,type="l",ylim=c(0,1),main=paste("Prop. of pos & neg by",names(dades)[k]), las=3)
     #x<-plot(marg,type="l",ylim=c(0,1),main=paste("Prop. of pos & neg by",names(dades)[k]), xaxt="n")
    #text(x=x+.25, y=-1, adj=1, levels(CountryName), xpd=TRUE, srt=25, cex=0.7)
-   paleta<-rainbow(length(levels(as.factor(P))))
-      for(c in 1:length(levels(as.factor(P)))){lines(rowperc[c,],col=paleta[c]) }
+   #paleta<-rainbow(length(levels(as.factor(P))))
+    #  for(c in 1:length(levels(as.factor(P)))){lines(rowperc[c,],col=paleta[c]) }
 
       #with legend
       plot(marg,type="l",ylim=c(0,1),main=paste("Prop. of pos & neg by",names(dades)[k]), las=3)
@@ -287,9 +287,9 @@ for(k in 1:K){
       legend("topright", levels(as.factor(P)), col=paleta, lty=2, cex=0.6)
    
    #condicionades a columna 
-   plot(marg,type="n",ylim=c(0,1),main=paste("Prop. of pos & neg by",names(dades)[k]), las=3)
-   paleta<-rainbow(length(levels(as.factor(P))))
-   for(c in 1:length(levels(as.factor(P)))){lines(colperc[c,],col=paleta[c]) }
+   #plot(marg,type="n",ylim=c(0,1),main=paste("Prop. of pos & neg by",names(dades)[k]), las=3)
+   #paleta<-rainbow(length(levels(as.factor(P))))
+   #for(c in 1:length(levels(as.factor(P)))){lines(colperc[c,],col=paleta[c]) }
    
    #with legend
    plot(marg,type="n",ylim=c(0,1),main=paste("Prop. of pos & neg by",names(dades)[k]), las=3)
@@ -305,16 +305,16 @@ for(k in 1:K){
       #diagrames de barres apilades                                         
       
       paleta<-rainbow(length(levels(dades[,k])))
-      barplot(table(dades[,k], as.factor(P)), beside=FALSE,col=paleta )
+      #barplot(table(dades[,k], as.factor(P)), beside=FALSE,col=paleta )
 
-      barplot(table(dades[,k], as.factor(P)), beside=FALSE,col=paleta )
-      legend("topright",levels(as.factor(dades[,k])),pch=1,cex=0.5, col=paleta)
+      #barplot(table(dades[,k], as.factor(P)), beside=FALSE,col=paleta )
+      #legend("topright",levels(as.factor(dades[,k])),pch=1,cex=0.5, col=paleta)
       
    #diagrames de barres adosades
-      barplot(table(dades[,k], as.factor(P)), beside=TRUE,col=paleta )
+      #barplot(table(dades[,k], as.factor(P)), beside=TRUE,col=paleta )
 
-      barplot(table(dades[,k], as.factor(P)), beside=TRUE,col=paleta)
-      legend("topright",levels(as.factor(dades[,k])),pch=1,cex=0.5, col=paleta)
+      #barplot(table(dades[,k], as.factor(P)), beside=TRUE,col=paleta)
+      #legend("topright",levels(as.factor(dades[,k])),pch=1,cex=0.5, col=paleta)
    
       print("Test Chi quadrat: ")
       print(chisq.test(dades[,k], as.factor(P)))
