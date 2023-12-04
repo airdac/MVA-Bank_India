@@ -9,6 +9,7 @@ editor_options:
 library(MASS)
 library(biotools)
 library(candisc)
+library(ROSE)
 ```
 
 
@@ -21,47 +22,76 @@ if(!is.null(dev.list())) dev.off()
 # Clean workspace
 rm(list=ls())
 
-data <- read.table("2.Bank_India_preprocessed_data.csv",header=T, stringsAsFactors=TRUE, sep=","); summary(data)
+data <- read.table("2.Bank_India_preprocessed_data.csv",header=T, stringsAsFactors=TRUE, sep=",")
+
 ```
 
+# Reviewing our dataset
 
 ```{r}
+summary(data)
 # Here we can see the output of the PCA 
+
+# Pick those numerical features
 numeriques <- which(sapply(data,is.numeric))
 # We don't include id for the analysis
 numeriques = numeriques[-1]
-# Pick those numerical features
 dcon <- data[,c(2,numeriques)]
 
+# As in the previous reported mentioned, our dataset are unbalanced
+table(dcon$target)
+# There are 4572 payed observation, while only 427 overdue are observed.
+# The overdue sample only weight 8,5% among the total observation.
 ```
+
+# Treatement of unbalanced data
+
+```{r}
+# We will undersampling our dataset to 854 record, then the observation will be equivalent
+
+data_balanced <- ovun.sample(target ~ ., dcon, method = "under", N = 854, seed = 1)$data
+summary(data_balanced)
+
+```
+
 
 ```{r}
 # Let's check the first model with all the numerical variables included.
-target.lda = lda(target~., data = dcon); target.lda
+target.lda = lda(target~., data = data_balanced); target.lda
 
+# It only return LD1, because there is only two group of result, paid or overdue.
 ```
 
-# It only return LD1, because there is only two group of result, paid or overdue
 
 ```{r}
-
+# With the well built, we can apply it to the original dataset.
 predict.lda = predict(target.lda, dcon)
 summary(predict.lda)
 
+# Let's add the LDA1 component to the dataset and rename the column.
 dcon[,10] = predict.lda$x[,1]
-
 names(dcon)[10] = "LDA1"
+
 ```
 
+# Validation of LDA model
+
 ```{r}
+# At below, we can plot the distribution over the 1-D. histogram.
 par(mar=c(3,2.5,1.5,1))
 
 ldahist(data = dcon[,10], g = dcon$target,ymax = 1)
 
+# As we can observe, the variance between clusters are not significant.
 ```
 
-
 ```{r}
+# Confusion matrix
+
+table(dcon[,1])
+Confusion_matrix = table(dcon[,1], dcon[,10])
+
+Confusion_matrix
 
 ```
 
