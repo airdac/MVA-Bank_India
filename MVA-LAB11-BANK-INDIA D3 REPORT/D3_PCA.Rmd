@@ -2,8 +2,18 @@
 title: "PCA MVA-11-BANK_INDIA"
 author: "Adrià Casanova Lloveras"
 date: "2023-10-26"
-output: html_document
+output:
+  word_document:
+    toc: yes
+    toc_depth: '3'
+  pdf_document:
+    toc: yes
+    toc_depth: 3
+    number_sections: no
+editor_options:
+  chunk_output_type: console
 ---
+
 # Load libraries
 ```{r}
 library(car)
@@ -184,6 +194,9 @@ axis(side=4, pos= 0, labels = F, col="cyan")
 
 text(fdic1,fdic2,labels=levels(varcat), col=c("green", "red"), 
      cex=0.7)
+arrows(ze, ze, X, Y, length = 0.07,col="lightgray")
+text(X,Y,labels=etiq,col="lightgray", cex=0.8)
+
 ```
 
 # Adding categorical features in the factorial plan to find the correlation between variables.
@@ -207,7 +220,12 @@ for(k in dcat){
   
   text(fdic1,fdic2,labels=levels(factor(data[,k])),col=seguentColor, cex=0.6)
   c<-c+1
+  
 }
+text(fdic1,fdic2,labels=levels(varcat), col=c("green", "red"), 
+     cex=0.7)
+arrows(ze, ze, X, Y, length = 0.07,col="lightgray")
+text(X,Y,labels=etiq,col="lightgray", cex=0.8)
 legend("bottomleft",names(data)[dcat],pch=1,col=colors, cex=0.6)
 
 ```
@@ -233,6 +251,10 @@ for(k in dcat){
   text(fdic1,fdic2,labels=levels(factor(data[,k])),col=seguentColor, cex=0.6)
   c<-c+1
 }
+text(fdic1,fdic2,labels=levels(varcat), col=c("green", "red"), 
+     cex=0.7)
+arrows(ze, ze, X, Y, length = 0.07,col="lightgray")
+text(X,Y,labels=etiq,col="lightgray", cex=0.8)
 legend("bottomleft",names(data)[dcat],pch=1,col=colors, cex=0.6)
 
 ```
@@ -264,7 +286,9 @@ for(j in 1:length(groups)){
            cex=0.6)
       c <- c+1
     }
-  legend("bottomleft",names(data)[groups[[j]]],pch=1,col=colors, cex=0.6)
+    arrows(ze, ze, X, Y, length = 0.07,col="lightgray")
+    text(X,Y,labels=etiq,col="lightgray", cex=0.6)
+    legend("bottomleft",names(data)[groups[[j]]],pch=1,col=colors, cex=0.8)
 }
 
 
