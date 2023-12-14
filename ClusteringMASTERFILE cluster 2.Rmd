@@ -204,7 +204,7 @@ n<-dim(dades)[1]
 ```
 
 ```{r}
-for(k in 1:K){
+for(k in 1:4){
   if (is.numeric(dades[,k])){ 
       print(paste("Anàlisi per classes de la Variable:", names(dades)[k]))
 
