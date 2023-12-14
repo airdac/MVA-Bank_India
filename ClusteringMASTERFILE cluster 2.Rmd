@@ -36,7 +36,7 @@ plot(h1)
 
 d  <- dist(dcon)
 h1 <- hclust(d,method="ward")  # NOTICE THE COST
-plot(h1)
+#plot(h1)
 ```
 
 BUT WE ONLY NEED WHERE THERE ARE THE LEAPS OF THE HEIGHT
@@ -123,9 +123,9 @@ h1 <- hclust(distMatrix,method="ward.D")  # NOTICE THE COST
 versions noves "ward.D" i abans de plot: par(mar=rep(2,4)) si se quejara de los margenes del plot
 
 ```{r}
-plot(h1)
+#plot(h1)
 
-c2 <- cutree(h1,4)
+c2 <- cutree(h1,2)
 ```
 
 ```{r}
@@ -338,6 +338,28 @@ for (c in 1:length(levels(as.factor(P)))) {
 
 #saving the dataframe in an external file
 #write.table(dd, file = "credscoClean.csv", sep = ";", na = "NA", dec = ".", row.names = FALSE, col.names = TRUE)
-
 ```
+
+
+
+```{r}
+# Make statistical tests 
+cluster1_target = data.frame(dd[which(c2 == 1),])
+cluster2_target = data.frame(dd[which(c2 == 2),])
+
+summary(cluster1_target)
+summary(cluster2_target)
+
+#library(DataExplorer)
+#create_report(cluster1_target, output_file = 'SmartEDA_cluster1.html')
+#create_report(cluster2_target, output_file = 'SmartEDA_cluster2.html')
+```
+
+```{r}
+# Check which variables are significant (use kruskal.test for numeric)
+kruskal.test(job_duration ~ c2)
+```
+
+
+
 
