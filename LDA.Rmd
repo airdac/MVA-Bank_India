@@ -51,15 +51,15 @@ table(dcon$target)
 ```{r}
 # We will undersampling our dataset to 854 record, then the observation will be equivalent
 
-data_balanced <- ovun.sample(target ~ ., dcon, method = "under", N = 854, seed = 1)$data
-summary(data_balanced)
+data_under_balanced <- ovun.sample(target ~ ., dcon, method = "under", N = 854, seed = 1)$data
+summary(data_under_balanced)
 
 ```
 
 
 ```{r}
 # Let's check the first model with all the numerical variables included.
-target.lda = lda(target~., data = data_balanced); target.lda
+target.lda_under = lda(target~., data = data_under_balanced); target.lda_under
 
 # It only return LD1, as there is only two group of result, paid or overdue.
 ```
@@ -67,13 +67,15 @@ target.lda = lda(target~., data = data_balanced); target.lda
 
 ```{r}
 # With the well built, we can apply it to the original dataset.
-predict.lda = predict(target.lda, dcon)
-summary(predict.lda)
+predict.lda_under = predict(target.lda_under, dcon)
+summary(predict.lda_under)
 
 # Let's add the LDA1 component to the dataset and rename the column.
-dcon[,10] = predict.lda$x[,1]
+dcon[,10] = predict.lda_under$x[,1]
 names(dcon)[10] = "LDA1"
 
+
+# Check if if its normal. and covariance, and check distribution of balance and unbalance data.
 ```
 
 # Validation of LDA model
@@ -91,7 +93,7 @@ ldahist(data = dcon[,10], g = dcon$target,ymax = 1)
 ```{r}
 # Confusion matrix
 
-predictions = predict(object = target.lda, newdata = dcon[,-1])
+predictions = predict(object = target.lda_under, newdata = dcon[,-1])
 
 CM = table(dcon$target, predictions$class, dnn = c("Actual Class", "Predicted Class")); CM
 
@@ -107,6 +109,26 @@ Actual Class payed overdue
 # And the Accuracy reached is only about 44%.
 
 accuracy = sum(diag(CM))/dim(dcon)[1]*100; accuracy
+
+# and checking the ROC curve, the performance is unsatisfactory.
+
+roc.curve(dcon$target, predictions$class)
+```
+
+
+# Another approach is to combine the under-sampling with generation of artificial data
+
+```{r}
+
+data_both_balanced = ovun.sample(target ~ ., dcon, method = "both", p=0.5, N = 2000, seed = 1)$data
+
+target.lda_both = lda(target~., data = data_both_balanced);
+
+predictions = predict(object = target.lda_both, newdata = dcon[,-1])
+
+CM = table(dcon$target, predictions$class, dnn = c("Actual Class", "Predicted Class")); CM
+
+roc.curve(dcon$target, predictions$class)
 
 ```
 
