@@ -2,7 +2,16 @@
 title: "PCA MVA-11-BANK_INDIA"
 author: "Adrià Casanova Lloveras"
 date: "2023-10-26"
-output: html_document
+output:
+  word_document:
+    toc: yes
+    toc_depth: '3'
+  pdf_document:
+    toc: yes
+    toc_depth: 3
+    number_sections: no
+editor_options:
+  chunk_output_type: console
 ---
 # Load libraries
 ```{r}
@@ -86,7 +95,7 @@ ze = rep(0,length(etiq)) # WE WILL NEED THIS VECTOR AFTERWARDS FOR THE GRAPHICS
 
 #Select the component to be plot on our axis
 eje1<-1
-eje2<-2
+eje2<-3
 
 # Here is were we create the shadows
 
@@ -197,6 +206,8 @@ axis(side=4, pos= 0, labels = F, col="cyan")
 
 text(fdic1,fdic2,labels=levels(varcat), col=c("green", "red"), 
      cex=0.7)
+arrows(ze, ze, X, Y, length = 0.07,col="lightgray")
+text(X,Y,labels=etiq,col="lightgray", cex=0.8)
 ```
 
 # Adding categorical features in the factorial plan to find the correlation between variables.
@@ -204,7 +215,7 @@ text(fdic1,fdic2,labels=levels(varcat), col=c("green", "red"),
 dcat <- c(2:5,11:14,17:18,20)
 colors<-rainbow(length(dcat))
 
-plot(Psi[,eje1],Psi[,eje2], type = "n")
+plot(Psi[,eje1],Psi[,eje2], type = "n", xlim= c(-2,2), ylim = c(-1,1))
 axis(side=1, pos= 0, labels = F, col="cyan")
 axis(side=3, pos= 0, labels = F, col="cyan")
 axis(side=2, pos= 0, labels = F, col="cyan")
@@ -221,6 +232,10 @@ for(k in dcat){
   text(fdic1,fdic2,labels=levels(factor(data[,k])),col=seguentColor, cex=0.6)
   c<-c+1
 }
+text(fdic1,fdic2,labels=levels(varcat), col=c("green", "red"), 
+     cex=0.7)
+arrows(ze, ze, X, Y, length = 0.07,col="lightgray")
+text(X,Y,labels=etiq,col="lightgray", cex=0.8)  
 legend("bottomleft",names(data)[dcat],pch=1,col=colors, cex=0.6)
 
 ```
@@ -259,7 +274,7 @@ groups <- list(c(2:5), c(2,11:13), c(2,14), c(2,17), c(2,18), c(2,20))
 for(j in 1:length(groups)){
   colors <- c("red", "blue", "darkgreen", "black")
   
-  plot(Psi[,eje1],Psi[,eje2], type = "n", xlim = c(-2,2), ylim = c(-2,2),
+  plot(Psi[,eje1],Psi[,eje2], type = "n", xlim = c(-2,2), ylim = c(-0.5,0.5),
        xlab = "Economic stability", ylab='# Family members')
   axis(side=1, pos= 0, labels = F, col="cyan")
   axis(side=3, pos= 0, labels = F, col="cyan")
@@ -736,7 +751,7 @@ eje2<-3
 
 # Here is were we create the shadows
 
-plot(Psi[,eje1],Psi[,eje2], type="n")
+plot(Psi[,eje1],Psi[,eje2], type="n", main="")
 text(Psi[,eje1],Psi[,eje2],labels=iden, cex=0.5)
 axis(side=1, pos= 0, labels = F, col="cyan")
 axis(side=3, pos= 0, labels = F, col="cyan")
