@@ -128,6 +128,8 @@ predictions = predict(object = target.lda_both, newdata = dcon[,-1])
 
 CM = table(dcon$target, predictions$class, dnn = c("Actual Class", "Predicted Class")); CM
 
+accuracy = sum(diag(CM))/dim(dcon)[1]*100; accuracy
+
 roc.curve(dcon$target, predictions$class)
 
 ```
