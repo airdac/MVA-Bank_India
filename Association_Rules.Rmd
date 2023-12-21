@@ -1,0 +1,309 @@
+
+---
+title: "Association rules"
+date: "2023"
+output: word_document
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r}
+# Clear plots
+if(!is.null(dev.list())) dev.off()
+
+# Clean workspace
+rm(list=ls())
+```
+
+# Load the required libraries and the database
+
+```{r}
+library(arules)
+library("arulesViz")
+library(dplyr)
+library(ggplot2)
+library(Hmisc)
+
+dd <- read.table("2.Bank_India_preprocessed_data.csv",header=T, stringsAsFactors=TRUE, sep=",")
+
+#Selecting categorical variables
+dcat<-dd[,sapply(dd, is.factor)]
+```
+
+
+# 1) Transform into a transactional database 
+The transaction database will have the same number of rows as the original but the same number of levels as categorical values we have.
+
+As we already knew, our target and other categories of the database
+are unbalanced.
+
+```{r}
+dtrans<-as(dcat, "transactions")
+
+foo<-function(x){length(levels(x))}
+sum(sapply(dcat, foo))
+
+#Checking our transactional database
+dtrans
+inspect(head(dtrans,10))
+summary(dtrans)
+
+itemFrequencyPlot(dtrans, topN=10, main ="Top 10 frequent itemsets", ylim = c(0,1))
+itemFrequencyPlot(dtrans, support = 0.5, main ="Top 10 frequent itemsets", ylim = c(0,1))
+```
+
+Then, we did the same analysis with ECLAT
+
+```{r}
+ecl = eclat(dtrans)
+
+size_eclat = size(ecl)
+
+data.frame(size_eclat) %>%
+  ggplot(aes(x = size_eclat)) +
+  geom_histogram() +
+  labs(title = "ECLAT: Distribution of the size of the transactions",
+       x = "Size", y = "Frequency") + 
+  theme_bw() + 
+  scale_x_continuous(breaks = scales::pretty_breaks(n = 8))
+```
+
+# 2) General rules 
+
+First, we wanted to discover all the important rules in the database. To do that, we define a low support (0.01) and a big confidence (0.7) and remove the empty rules by setting minlen=2. Then, we filter by lift to consider only good rules. We also tried also to establish an smaller value of support (0.01), but it does not provide any additional good rules
+
+```{r}
+rules <- apriori(dtrans, parameter =
+                      list(support = 0.01, confidence = 0.7, minlen=2, maxlen = 11))
+good.rules <- subset(rules, subset = lift > 1)
+
+# Remove redundant rules
+nonredundant <- good.rules[!is.redundant(good.rules),]
+summary(nonredundant)
+
+inspect(head(nonredundant,n=10, by="lift"))
+
+length(good.rules)
+length(nonredundant)
+good.rules <- nonredundant
+```
+
+Here we demostrate that 0.01 is a good value for support for our case, as it provides
+almost the same number of rules than a lower value
+
+```{r}
+df.rules <- DATAFRAME(good.rules)
+plot(sort(df.rules$support, decreasing = TRUE), type = "l", main = 'Rules and support', ylab = 'Minimum support')
+minor.tick(ny = 2, tick.ratio = 0.5)
+abline(h=0.01, col="red", lty = 3, lwd = 2)
+```
+
+
+## Analysis of the rules
+
+We consider that a rule is good if it has a lift => 3 and is not redundant. With this criteria there are 85 rules that we need to analyse.
+
+We see that highest lift rules (lift = 17) are trivial, since they relate people with the same occupation and job_type. This was expected because these variables tell a
+similar information.
+
+The most relevant rule is that the set of pensioners is exactly the set
+of people with job type unknown.
+
+```{r}
+# Note that setting an smaller support does not provide more good rules
+rules <- apriori(dtrans, parameter =
+                      list(support = 0.01, confidence = 0.7, minlen=2, maxlen = 11))
+
+good.rules <- subset(rules, subset = lift > 3)
+
+nonredundant <- good.rules[!is.redundant(good.rules),]
+
+# Save the rules
+# write.csv(DATAFRAME(nonredundant))
+```
+
+```{r}
+# Explore and plot the rules
+library(colourvalues)
+
+length(nonredundant)
+# inspect(head(nonredundant, n=80, by="lift"))
+
+plot(nonredundant, measure = c("support", "lift"), shading = "confidence", colors = c( 'red', 'blue', 'green'), interactive = FALSE)
+```
+
+Here we analyse the case pensioners and Jobtype_Unknown and discovered that 
+all pensioners reported "Jobtype_Unknown". 
+
+```{r}
+pensioners = which(dcat$job_stat=="Pensioner")
+unk_jobtype = which(dcat$job_type=="Jobtype_Unknown")
+setdiff(pensioners, unk_jobtype)
+setdiff(unk_jobtype, pensioners)
+
+inspect(sort(good.rules, by="lift")[9:30,])
+# Many rules associate people with unknown occupation and pensioners. Let's
+# look at their setdiff()
+
+unk_occupation <- which(dcat$occupation == "Occupation_Unknown")
+setdiff(pensioners, unk_occupation)
+setdiff(unk_occupation, pensioners)
+length(setdiff(unk_occupation, pensioners))
+# All pensioners declared their occupation as unknown. However, 675 individuals
+# didn't tell their occupation and weren't pensioners.
+```
+
+Now we will analyze the category unk_occupation to try to discover rules 
+about the unknowns in Jobtype.
+
+```{r}
+unk.occup.not.pensioner <- subset(good.rules, subset =
+                                    lhs %in% "occupation=Occupation_Unknown" & 
+                                    !(rhs %in% "job_stat=Pensioner") &
+                                    !(rhs %in% "job_type=Jobtype_Unknown"))
+inspect(head(unk.occup.not.pensioner, n=10, by="lift"))
+unk.occup.not.pensioner2 <- subset(good.rules, subset =
+                                    lhs %in% "occupation=Occupation_Unknown" & 
+                                    !(rhs %in% "job_stat=Pensioner") &
+                                    !(rhs %in% "job_type=Jobtype_Unknown") &
+                                    size(lhs) <= 1)
+inspect(head(unk.occup.not.pensioner2, n=10, by="lift"))
+
+# We'll try now to reverse the rules
+unk.occup.not.pensioner3 <- subset(good.rules, subset =
+                                    rhs %in% "occupation=Occupation_Unknown" & 
+                                    !(lhs %in% "job_stat=Pensioner") &
+                                    !(lhs %in% "job_type=Jobtype_Unknown") &
+                                     size(lhs) <= 5)
+inspect(head(unk.occup.not.pensioner2, n=10, by="lift"))
+
+unk.occup.not.pensioner4 <- subset(good.rules, subset =
+                                     rhs %in% "occupation=Occupation_Unknown" & 
+                                     !(lhs %in% "job_stat=Pensioner") &
+                                     !(lhs %in% "job_type=Jobtype_Unknown") &
+                                     size(lhs) <= 4)
+inspect(head(unk.occup.not.pensioner4, n=10, by="lift"))
+# We can't describe in a confident and simple way the individuals with unknown
+# occupation who aren't pensioners
+```
+
+Now, we will study the simplest rules. To find them, we reduce the limit of
+the lift to 1.
+
+```{r}
+# We'll study now the simplest rules
+rules2 <- apriori(dtrans, parameter =
+                   list(support = 0.01, confidence = 0.7, minlen=2, maxlen = 2))
+good.rules2 <- subset(rules2, subset = lift > 1)
+
+inspect(head(good.rules2, n=10, by = "lift"))
+# Highest lift rules are trivial, since they relate people with the same
+# occupation and job_type. This was expected because these variables tell a
+# similar information
+
+# Before doing any feature selection, let us remove redundant rules
+nonredundant2 <- good.rules2[!is.redundant(good.rules2),]
+summary(nonredundant2)
+inspect(head(nonredundant2,n=10, by="lift"))
+
+length(good.rules2)
+length(nonredundant2)
+good.rules2 <- nonredundant2
+
+inspect(head(good.rules2, n=25, by="lift"))
+# With these simple rules, we are able to describe better our individuals by
+# gender and the jobs that make job_stat=Working up. Other categories we understand
+# better now are car=N and studies = Secondary education.
+# However, these rules are not relevant for our goals in this analysis. Moreover,
+# none of them have a big lift value.
+```
+
+Lastly, we will plot the best rules that we have discovered
+
+```{r}
+top10 <- sort(nonredundant, by="lift")[1:10]
+
+plot(top10, method="grouped", shading = "lift")
+```
+
+
+# Rules related to the target
+
+Finally, we decided to study our target starting with the category "payed" by putting
+this category in the right and left hand side. 
+
+```{r}
+rules <- apriori(dtrans, parameter =
+                      list(support = 0.01, confidence = 0.7, minlen=2, maxlen = 11))
+
+good.rules <- subset(rules, subset = lift > 1)
+
+payedRules <- sort(subset(good.rules, subset = rhs %in% "target=payed"), by = "lift")
+summary(payedRules)
+
+inspect(head(payedRules, by="lift"))
+```
+
+
+```{r}
+# Plot the rules
+plot(payedRules, measure=c("support", "confidence"), shading="lift",
+     main = 'Association rules (8266) with payers in the rhs') + theme(legend.position = "bottom")
+```
+
+
+```{r}
+payedRules2 <- sort(subset(good.rules, subset = (lhs %in% "target=payed" & lift > 3)), by = "lift")
+inspect(head(payedRules2, n=10, by="lift"))
+
+# We can try to filter, removing "jobtype unknown" and "medicine" that are trivial rules
+
+payedRules2 <- sort(subset(good.rules, subset = (lhs %in% "target=payed" & !(rhs %in% "job_type=Medicine") & !(rhs %in% "job_type=Jobtype_Unknown") & !(lhs %in% "job_type=Jobtype_Unknown") & lift > 3), by = "lift"))
+inspect(head(payedRules2, n=10, by="lift"))
+```
+
+```{r}
+plot(payedRules2, measure=c("support", "confidence"), shading="lift",
+     color = c('blue', 'lightblue'), main = 'Association rules (3570) with payers in the lhs') + theme(legend.position = "bottom")
+```
+
+Now, we will predict the people that did not pay
+```{r}
+overdueRules <- sort(subset(good.rules, subset = rhs %in% "target=overdue"), by = "lift")
+summary(overdueRules)
+```
+
+As there are no rules on the rhs we decided to reduce the support to try to find some
+
+```{r}
+# Note that setting an smaller support does not provide more good rules
+rules2 <- apriori(dtrans, parameter =
+                      list(support = 0.001, confidence = 0.7, minlen=2, maxlen = 11))
+good.rules2 <- subset(rules2, subset = lift > 3)
+nonredundant2 <- good.rules2[!is.redundant(good.rules2),]
+
+length(nonredundant2)
+
+overdueRules2 <- subset(nonredundant2, subset =
+                                     (rhs %in% "target=overdue"))
+
+# Note: even if there are good rules the support is too low, so if they exist,
+# are very rare and, then, not useful to predict the people that did not pay
+```
+
+
+Later, we checked for the characteristics on the left part
+
+```{r}
+overdueRules3 <- sort(subset(good.rules, subset = (lhs %in% "target=overdue" & 
+                             lift > 2), by = "lift"))
+inspect(head(overdueRules3, by="lift"))
+
+#plot(overdueRules3, measure = c("support", "lift"), shading = "confidence")
+plot(overdueRules3, method="graph", shading = "lift") + theme(plot.background = element_rect(fill='transparent', color=NA))
+```
+
+
+
+
+
