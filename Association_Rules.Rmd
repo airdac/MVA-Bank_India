@@ -23,6 +23,7 @@ library("arulesViz")
 library(dplyr)
 library(ggplot2)
 library(Hmisc)
+library(colourvalues)
 
 dd <- read.table("2.Bank_India_preprocessed_data.csv",header=T, stringsAsFactors=TRUE, sep=",")
 
@@ -47,12 +48,11 @@ sum(sapply(dcat, foo))
 dtrans
 inspect(head(dtrans,10))
 summary(dtrans)
-```
 
-
-```{r}
 itemFrequencyPlot(dtrans, topN=10, main ="Top 10 frequent itemsets", ylim = c(0,1))
 itemFrequencyPlot(dtrans, support = 0.5, main ="Top 10 frequent itemsets", ylim = c(0,1))
+
+itemFrequencyPlot(dtrans, main ="Frequency of all itemsets", ylim = c(0,1))
 ```
 
 Then, we did the same analysis with ECLAT
@@ -106,54 +106,35 @@ abline(h=0.01, col="red", lty = 3, lwd = 2)
 
 We consider that a rule is good if it has a lift => 3 and is not redundant. With this criteria there are 85 rules that we need to analyse.
 
-We see that highest lift rules (lift = 17) are trivial, since they relate people with the same occupation and job_type. This was expected because these variables tell a
-similar information.
-
-The most relevant rule is that the set of pensioners is exactly the set
-of people with job type unknown.
-
 ```{r}
 # Note that setting an smaller support does not provide more good rules
-rules <- apriori(dtrans, parameter =
-                      list(support = 0.01, confidence = 0.7, minlen=2, maxlen = 11))
-
 good.rules <- subset(rules, subset = lift > 3)
 
 nonredundant <- good.rules[!is.redundant(good.rules),]
 
-# Save the rules
-# write.csv(DATAFRAME(nonredundant))
-```
-
-```{r}
-# Explore and plot the rules
-library(colourvalues)
-
 length(nonredundant)
-# inspect(head(nonredundant, n=80, by="lift"))
 
-plot(nonredundant, measure = c("support", "lift"), shading = "confidence", colors = c( 'red', 'blue', 'green'), interactive = FALSE)
+plot(nonredundant, measure = c("support", "lift"), shading = "confidence", colors = c( 'red', 'blue', 'green'), interactive = FALSE) + 
+  theme(legend.position = "bottom")
+
 ```
 
 Here we analyse the case pensioners and Jobtype_Unknown and discovered that 
-all pensioners reported "Jobtype_Unknown". 
+all pensioners reported "Jobtype_Unknown". However, 675 individuals
+didn't tell their occupation and weren't pensioners.
 
 ```{r}
+# All pensioneers have Jobtype_Unknown
 pensioners = which(dcat$job_stat=="Pensioner")
 unk_jobtype = which(dcat$job_type=="Jobtype_Unknown")
 setdiff(pensioners, unk_jobtype)
 setdiff(unk_jobtype, pensioners)
 
-inspect(sort(good.rules, by="lift")[9:30,])
-# Many rules associate people with unknown occupation and pensioners. Let's
-# look at their setdiff()
-
+# Not all occupation_Unknown are pensioneers
 unk_occupation <- which(dcat$occupation == "Occupation_Unknown")
 setdiff(pensioners, unk_occupation)
 setdiff(unk_occupation, pensioners)
 length(setdiff(unk_occupation, pensioners))
-# All pensioners declared their occupation as unknown. However, 675 individuals
-# didn't tell their occupation and weren't pensioners.
 ```
 
 Now we will analyze the category unk_occupation to try to discover rules 
@@ -214,11 +195,6 @@ length(nonredundant2)
 good.rules2 <- nonredundant2
 
 inspect(head(good.rules2, n=25, by="lift"))
-# With these simple rules, we are able to describe better our individuals by
-# gender and the jobs that make job_stat=Working up. Other categories we understand
-# better now are car=N and studies = Secondary education.
-# However, these rules are not relevant for our goals in this analysis. Moreover,
-# none of them have a big lift value.
 ```
 
 Lastly, we will plot the best rules that we have discovered
@@ -226,7 +202,7 @@ Lastly, we will plot the best rules that we have discovered
 ```{r}
 top10 <- sort(nonredundant, by="lift")[1:10]
 
-plot(top10, method="grouped", shading = "lift")
+plot(top10, method="grouped", shading = "lift", col = c("blue", "green"))
 ```
 
 
@@ -259,8 +235,8 @@ plot(payedRules, measure=c("support", "confidence"), shading="lift",
 payedRules2 <- sort(subset(good.rules, subset = (lhs %in% "target=payed" & lift > 3)), by = "lift")
 inspect(head(payedRules2, n=10, by="lift"))
 
-# We can try to filter, removing "jobtype unknown" and "medicine" that are trivial rules
 
+# We can try to filter, removing "jobtype unknown" and "medicine" that are trivial rules
 payedRules2 <- sort(subset(good.rules, subset = (lhs %in% "target=payed" & !(rhs %in% "job_type=Medicine") & !(rhs %in% "job_type=Jobtype_Unknown") & !(lhs %in% "job_type=Jobtype_Unknown") & lift > 3), by = "lift"))
 inspect(head(payedRules2, n=10, by="lift"))
 ```
@@ -273,19 +249,18 @@ plot(payedRules2, measure=c("support", "confidence"), shading="lift",
 Now, we will predict the people that did not pay
 ```{r}
 overdueRules <- sort(subset(good.rules, subset = rhs %in% "target=overdue"), by = "lift")
-summary(overdueRules)
+summary(overdueRules) # No rules
 ```
-
-As there are no rules on the rhs we decided to reduce the support to try to find some
+´
+As there are no rules on the rhs we decided to reduce the support to try to find some by
+deciding a new minimum support
 
 ```{r}
 # Note that setting an smaller support does not provide more good rules
 rules2 <- apriori(dtrans, parameter =
-                      list(support = 0.001, confidence = 0.7, minlen=2, maxlen = 11))
+                      list(support = 0.0001, confidence = 0.7, minlen=2, maxlen = 11))
 good.rules2 <- subset(rules2, subset = lift > 3)
 nonredundant2 <- good.rules2[!is.redundant(good.rules2),]
-
-length(nonredundant2)
 
 overdueRules2 <- subset(nonredundant2, subset =
                                      (rhs %in% "target=overdue"))
@@ -294,19 +269,35 @@ overdueRules2 <- subset(nonredundant2, subset =
 # are very rare and, then, not useful to predict the people that did not pay
 ```
 
+```{r}
+df.rules <- DATAFRAME(overdueRules2)
+plot(sort(df.rules$support, decreasing = TRUE), type = "l", main = 'Rules with target = "overdue" in the rhs', ylab = 'Minimum support')
+minor.tick(ny = 2, tick.ratio = 0.5)
+abline(h=0.01, col="red", lty = 3, lwd = 2)
+```
 
 Later, we checked for the characteristics on the left part
 
 ```{r}
-overdueRules3 <- sort(subset(good.rules, subset = (lhs %in% "target=overdue" & 
-                             lift > 2), by = "lift"))
-inspect(head(overdueRules3, by="lift"))
+rules <- apriori(dtrans, parameter =
+                      list(support = 0.01, confidence = 0.7, minlen=2, maxlen = 11))
 
-#plot(overdueRules3, measure = c("support", "lift"), shading = "confidence")
-plot(overdueRules3, method="graph", shading = "lift") + theme(plot.background = element_rect(fill='transparent', color=NA))
+good.rules <- subset(rules, subset = (lhs %in% "target=overdue" & 
+                             lift > 2))
+
+nonredundant <- good.rules[!is.redundant(good.rules),]
+
+#overdueRules3 <- sort(subset(good.rules, subset = (lhs %in% "target=overdue" & 
+#                             lift > 3), by = "lift"))
+
+inspect(head(nonredundant, by="lift"))
+
 ```
 
-
+And lets plot the resulting rules
+```{r}
+plot(nonredundant, method="grouped", shading = "lift", col = c("blue", "green")) + ggtitle("Rules with overdue in the LHS") + xlab(" ")
+```
 
 
 
