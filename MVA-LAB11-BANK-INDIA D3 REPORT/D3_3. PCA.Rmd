@@ -52,6 +52,7 @@ pc1
 ```{r}
 numeriques
 ```
+
 ```{r}
 barplot_x <- barplot(100*(pc1$sdev[1:dim(dcon)[2]]^2)/dim(dcon)[2], main = 
         'Inertia of principal components', 
@@ -62,8 +63,6 @@ barplot_y <- round(as.matrix(100*(pc1$sdev[1:dim(dcon)[2]]^2)/dim(dcon)[2]), dig
 
 text(barplot_x,barplot_y+2,labels=as.character(barplot_y))
 ```
-
-
 
 
 # Accumulated Inertia
@@ -95,7 +94,7 @@ ze = rep(0,length(etiq)) # WE WILL NEED THIS VECTOR AFTERWARDS FOR THE GRAPHICS
 
 #Select the component to be plot on our axis
 eje1<-1
-eje2<-3
+eje2<-2
 
 # Here is were we create the shadows
 
@@ -261,6 +260,8 @@ for(k in dcat){
   text(fdic1,fdic2,labels=levels(factor(data[,k])),col=seguentColor, cex=0.6)
   c<-c+1
 }
+arrows(ze, ze, X, Y, length = 0.07,col="lightgray")
+text(X,Y,labels=etiq,col="lightgray", cex=0.8)  
 legend("bottomleft",names(data)[dcat],pch=1,col=colors, cex=0.6)
 
 ```
@@ -274,7 +275,7 @@ groups <- list(c(2:5), c(2,11:13), c(2,14), c(2,17), c(2,18), c(2,20))
 for(j in 1:length(groups)){
   colors <- c("red", "blue", "darkgreen", "black")
   
-  plot(Psi[,eje1],Psi[,eje2], type = "n", xlim = c(-2,2), ylim = c(-0.5,0.5),
+  plot(Psi[,eje1],Psi[,eje2], type = "n", xlim = c(-2,2), ylim = c(-0.5,1),
        xlab = "Economic stability", ylab='# Family members')
   axis(side=1, pos= 0, labels = F, col="cyan")
   axis(side=3, pos= 0, labels = F, col="cyan")
@@ -292,6 +293,8 @@ for(j in 1:length(groups)){
            cex=0.6)
       c <- c+1
     }
+  arrows(ze, ze, X, Y, length = 0.07,col="lightgray")
+  text(X,Y,labels=etiq,col="lightgray", cex=0.8)  
   legend("bottomleft",names(data)[groups[[j]]],pch=1,col=colors, cex=0.6)
 }
 
@@ -430,6 +433,7 @@ axis(side=4, pos= 0, labels = F, col="cyan")
 
 legend("bottomleft",names(data)[groups[[j]]],pch=1,col=colors, cex=0.6)
 ```
+
 ```{r}
 j <- 6
 colors <- c("red", "blue", "darkgreen", "black")
@@ -515,6 +519,7 @@ rad <- sqrt(qchisq(0.95, df = ncol(df)))
 # Plotting the ellipse of Mahalanobis distance
 ellipse <- data.frame(ellipse(df.center, df.cov, rad, 100, FALSE, col = "orange", fill=TRUE))
 ```
+
 ```{r}
 #Select the component to be plot on our axis
 eje1<-1
@@ -550,7 +555,7 @@ text(X,Y,labels=etiq,col="darkblue", cex=0.7)
 
 # Projecting the PCA in the Factorial plane.
 ```{r}
-plot(Psi[,eje1],Psi[,eje2],type="n", xlim = c(0,1), ylim = c(-.5, 1), xlab = 'Economic stability', ylab='PC3', main =
+plot(Psi[,eje1],Psi[,eje2],type="n", xlim = c(0,1), ylim = c(-.5, 1), xlab = 'Economic stability', ylab='#Enquiries', main =
        "Numerical Variables on Factorial plane of PC1 and PC3")
 axis(side=1, pos= 0, labels = F)
 axis(side=3, pos= 0, labels = F)
@@ -597,7 +602,7 @@ fdic2 = tapply(Psi[,eje2],varcat,mean)
 
 varcat=factor(data[,2])
 plot(Psi[,1],Psi[,2], pch=c(20,20) [varcat], col=c("darkblue", "red") [varcat],
-     xlab = 'Economic stability', ylab = 'PC3', main = 
+     xlab = 'Economic stability', ylab = '#Enquiries', main = 
        'Individuals on Factorial plane of PC1 and PC3')
 axis(side=1, pos= 0, labels = F, col="black")
 axis(side=3, pos= 0, labels = F, col="black")
@@ -614,7 +619,7 @@ text(fdic1,fdic2,labels=levels(varcat), col=c("green", "green"),
 # If we take a loop in the centroid of distribution of "paid" and "overdue", where's the result.
 ```{r, include=FALSE}
 
-plot(Psi[,eje1],Psi[,eje2],type="n", xlim= c(-1,1), ylim = c(-1,1), xlab = 'Economic stability', ylab = 'PC3', main = 
+plot(Psi[,eje1],Psi[,eje2],type="n", xlim= c(-1,1), ylim = c(-1,1), xlab = 'Economic stability', ylab = '#Enquiries', main = 
        'Target on Factorial plane of PC1 and PC3')
 axis(side=1, pos= 0, labels = F, col="cyan")
 axis(side=3, pos= 0, labels = F, col="cyan")
@@ -656,7 +661,7 @@ legend("bottomleft",names(data)[dcat],pch=1,col=colors, cex=0.6)
 dcat <- c(2:5,11:14,17:18,20)
 colors<-rainbow(length(dcat))
 
-plot(Psi[,eje1],Psi[,eje2], type = "n", xlim = c(-1.5,1.5), ylim = c(-.7,.7), xlab = 'Economic stability', ylab = 'PC3', main = 
+plot(Psi[,eje1],Psi[,eje2], type = "n", xlim = c(-1.5,1.5), ylim = c(-.7,.7), xlab = 'Economic stability', ylab = '#Enquiries', main = 
        'Modalities on Factorial plane of PC1 and PC3')
 axis(side=1, pos= 0, labels = F, col="cyan")
 axis(side=3, pos= 0, labels = F, col="cyan")
@@ -744,6 +749,7 @@ for(j in 1:length(groups)){
 }
 
 ```
+
 ```{r}
 #Select the component to be plot on our axis
 eje1<-2
@@ -779,7 +785,7 @@ text(X,Y,labels=etiq,col="darkblue", cex=0.7)
 
 # Projecting the PCA in the Factorial plane.
 ```{r}
-plot(Psi[,eje1],Psi[,eje2],type="n", xlim = c(-1,1), ylim = c(-0.2, 1), xlab = '# Family members', ylab='PC3', main = "Numerical
+plot(Psi[,eje1],Psi[,eje2],type="n", xlim = c(-1,1), ylim = c(-0.2, 1), xlab = '# Family members', ylab='#Enquiries', main = "Numerical
      Variables on Factorial plane of PC2 and PC3")
 axis(side=1, pos= 0, labels = F)
 axis(side=3, pos= 0, labels = F)
@@ -804,7 +810,7 @@ fdic1 = tapply(Psi[,eje1],varcat,mean)
 fdic2 = tapply(Psi[,eje2],varcat,mean) 
 
 varcat=factor(data[,2])
-plot(Psi[,eje1],Psi[,eje2], pch=c(20,20) [varcat], col=c("darkblue", "red") [varcat], xlab = '# Family members', ylab='PC3', main = "Individuals
+plot(Psi[,eje1],Psi[,eje2], pch=c(20,20) [varcat], col=c("darkblue", "red") [varcat], xlab = '# Family members', ylab='#Enquiries', main = "Individuals
      on Factorial plane of PC2 and PC3")
 axis(side=1, pos= 0, labels = F, col="black")
 axis(side=3, pos= 0, labels = F, col="black")
@@ -821,7 +827,7 @@ text(fdic1,fdic2,labels=levels(varcat), col=c("green", "green"),
 # If we take a loop in the centroid of distribution of "paid" and "overdue", where's the result.
 ```{r, include=FALSE}
 
-plot(Psi[,eje1],Psi[,eje2],type="n", xlim= c(-1,1), ylim = c(-1,1), xlab = '# Family members', ylab='PC3', main = "Target
+plot(Psi[,eje1],Psi[,eje2],type="n", xlim= c(-1,1), ylim = c(-1,1), xlab = '# Family members', ylab='#Enquiries', main = "Target
      on Factorial plane of PC2 and PC3")
 axis(side=1, pos= 0, labels = F, col="cyan")
 axis(side=3, pos= 0, labels = F, col="cyan")
@@ -860,7 +866,7 @@ legend("bottomleft",names(data)[dcat],pch=1,col=colors, cex=0.6)
 # A zoom is required 
 ```{r, include=FALSE}
 plot(Psi[,eje1],Psi[,eje2], type = "n", xlim = c(-2.5,2), ylim = c(-.7,.7),
-     xlab = "# Family members", ylab = "PC3", main = 
+     xlab = "# Family members", ylab = "#Enquiries", main = 
        "Modalities on Factorial plane of PC2 and PC3")
 axis(side=1, pos= 0, labels = F, col="cyan")
 axis(side=3, pos= 0, labels = F, col="cyan")
