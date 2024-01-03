@@ -275,7 +275,7 @@ groups <- list(c(2:5), c(2,11:13), c(2,14), c(2,17), c(2,18), c(2,20))
 for(j in 1:length(groups)){
   colors <- c("red", "blue", "darkgreen", "black")
   
-  plot(Psi[,eje1],Psi[,eje2], type = "n", xlim = c(-2,2), ylim = c(-0.5,1),
+  plot(Psi[,eje1],Psi[,eje2], type = "n", xlim = c(-2,2), ylim = c(-2,2),
        xlab = "Economic stability", ylab='# Family members')
   axis(side=1, pos= 0, labels = F, col="cyan")
   axis(side=3, pos= 0, labels = F, col="cyan")
@@ -331,16 +331,18 @@ axis(side=4, pos= 0, labels = F, col="cyan")
   
   text(fdic1[1:split],fdic2[1:split],labels=levels(factor(data[,17]))[1:split],col=seguentColor, 
        cex=0.6)
-
+  arrows(ze, ze, X, Y, length = 0.07,col="lightgray")
+  text(X,Y,labels=etiq,col="lightgray", cex=0.8) 
 legend("bottomleft",names(data)[groups[[j]]],pch=1,col=colors, cex=0.6)
 ```
+
 ```{r}
 # occupation 2
 j <- 4
 
 colors <- c("red", "blue", "darkgreen", "black")
   
-plot(Psi[,eje1],Psi[,eje2], type = "n", xlim = c(-1,1), ylim = c(-1,.5),
+plot(Psi[,eje1],Psi[,eje2], type = "n", xlim = c(-1,1), ylim = c(-1,1),
      xlab = "Economic stability", ylab='# Family members')
 axis(side=1, pos= 0, labels = F, col="cyan")
 axis(side=3, pos= 0, labels = F, col="cyan")
@@ -364,16 +366,18 @@ axis(side=4, pos= 0, labels = F, col="cyan")
   
   text(fdic1[split:end_ind],fdic2[split:end_ind],labels=levels(factor(data[,17]))[split:end_ind],col=seguentColor, 
        cex=0.6)
-
+  arrows(ze, ze, X, Y, length = 0.07,col="lightgray")
+  text(X,Y,labels=etiq,col="lightgray", cex=0.8)
 legend("bottomleft",names(data)[groups[[j]]],pch=1,col=colors, cex=0.6)
 ```
+
 ```{r}
 # job_type 1
 j <- 5
 
 colors <- c("red", "blue", "darkgreen", "black")
   
-plot(Psi[,eje1],Psi[,eje2], type = "n", xlim = c(-1.5,1), ylim = c(-.8,.2),
+plot(Psi[,eje1],Psi[,eje2], type = "n", xlim = c(-1.5,1), ylim = c(-.8,1),
      xlab = "Economic stability", ylab='# Family members')
 axis(side=1, pos= 0, labels = F, col="cyan")
 axis(side=3, pos= 0, labels = F, col="cyan")
@@ -396,7 +400,8 @@ axis(side=4, pos= 0, labels = F, col="cyan")
   
   text(fdic1[1:split],fdic2[1:split],labels=levels(factor(data[,18]))[1:split],col=seguentColor, 
        cex=0.6)
-
+  arrows(ze, ze, X, Y, length = 0.07,col="lightgray")
+  text(X,Y,labels=etiq,col="lightgray", cex=0.8)
 legend("bottomleft",names(data)[groups[[j]]],pch=1,col=colors, cex=0.6)
 ```
 
@@ -430,7 +435,8 @@ axis(side=4, pos= 0, labels = F, col="cyan")
   
   text(fdic1[split:end_ind],fdic2[split:end_ind],labels=levels(factor(data[,18]))[split:end_ind],col=seguentColor, 
        cex=0.6)
-
+  arrows(ze, ze, X, Y, length = 0.07,col="lightgray")
+  text(X,Y,labels=etiq,col="lightgray", cex=0.8)
 legend("bottomleft",names(data)[groups[[j]]],pch=1,col=colors, cex=0.6)
 ```
 
@@ -438,7 +444,7 @@ legend("bottomleft",names(data)[groups[[j]]],pch=1,col=colors, cex=0.6)
 j <- 6
 colors <- c("red", "blue", "darkgreen", "black")
   
-plot(Psi[,eje1],Psi[,eje2], type = "n", xlim = c(-.6,.5), ylim = c(-.5,.5),
+plot(Psi[,eje1],Psi[,eje2], type = "n", xlim = c(-.6,1), ylim = c(-.5,1),
      xlab = "Economic stability", ylab='# Family members')
 axis(side=1, pos= 0, labels = F, col="cyan")
 axis(side=3, pos= 0, labels = F, col="cyan")
@@ -456,6 +462,8 @@ axis(side=4, pos= 0, labels = F, col="cyan")
          cex=0.6)
     c <- c+1
   }
+    arrows(ze, ze, X, Y, length = 0.07,col="lightgray")
+  text(X,Y,labels=etiq,col="lightgray", cex=0.8)
 legend("bottomleft",names(data)[groups[[j]]],pch=1,col=colors, cex=0.6)
 ```
 
@@ -628,6 +636,8 @@ axis(side=4, pos= 0, labels = F, col="cyan")
 
 text(fdic1,fdic2,labels=levels(varcat), col=c("green", "red"), 
      cex=0.7)
+  arrows(ze, ze, X, Y, length = 0.07,col="lightgray")
+  text(X,Y,labels=etiq,col="lightgray", cex=0.8) 
 ```
 
 # Adding categorical features in the factorial plan to find the correlation between variables.
@@ -653,7 +663,8 @@ for(k in dcat){
   c<-c+1
 }
 legend("bottomleft",names(data)[dcat],pch=1,col=colors, cex=0.6)
-
+  arrows(ze, ze, X, Y, length = 0.07,col="lightgray")
+  text(X,Y,labels=etiq,col="lightgray", cex=0.8) 
 ```
 
 # A zoom is required 
@@ -661,7 +672,7 @@ legend("bottomleft",names(data)[dcat],pch=1,col=colors, cex=0.6)
 dcat <- c(2:5,11:14,17:18,20)
 colors<-rainbow(length(dcat))
 
-plot(Psi[,eje1],Psi[,eje2], type = "n", xlim = c(-1.5,1.5), ylim = c(-.7,.7), xlab = 'Economic stability', ylab = '#Enquiries', main = 
+plot(Psi[,eje1],Psi[,eje2], type = "n", xlim = c(-1.5,1.5), ylim = c(-.7,1), xlab = 'Economic stability', ylab = '#Enquiries', main = 
        'Modalities on Factorial plane of PC1 and PC3')
 axis(side=1, pos= 0, labels = F, col="cyan")
 axis(side=3, pos= 0, labels = F, col="cyan")
@@ -680,6 +691,8 @@ for(k in dcat){
   c<-c+1
 }
 legend("bottomleft",names(data)[dcat],pch=1,col=colors, cex=0.6)
+  arrows(ze, ze, X, Y, length = 0.07,col="lightgray")
+  text(X,Y,labels=etiq,col="lightgray", cex=0.8) 
 
 ```
 
@@ -820,7 +833,8 @@ legend("bottomleft",levels(factor(varcat)),pch=c(20,20),col=c("darkblue", "red")
 
 text(fdic1,fdic2,labels=levels(varcat), col=c("green", "green"), 
      cex=0.7)
-
+  arrows(ze, ze, X, Y, length = 0.07,col="gray")
+  text(X,Y,labels=etiq,col="gray", cex=0.7)
 ```
 
 
@@ -835,6 +849,8 @@ axis(side=2, pos= 0, labels = F, col="cyan")
 axis(side=4, pos= 0, labels = F, col="cyan")
 
 text(fdic1,fdic2,labels=levels(varcat), col=c("green", "red"), cex=0.7)
+  arrows(ze, ze, X, Y, length = 0.07,col="gray")
+  text(X,Y,labels=etiq,col="gray", cex=0.7)
 ```
 
 # Adding categorical features in the factorial plan to find the correlation between variables.
@@ -885,7 +901,8 @@ for(k in dcat){
   c<-c+1
 }
 legend("bottomleft",names(data)[dcat],pch=1,col=colors, cex=0.6)
-
+  arrows(ze, ze, X, Y, length = 0.07,col="gray")
+  text(X,Y,labels=etiq,col="gray", cex=0.7)
 ```
 
 
