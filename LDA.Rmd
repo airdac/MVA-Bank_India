@@ -86,6 +86,10 @@ par(mar=c(3,2.5,1.5,1))
 
 ldahist(data = dcon[,10], g = dcon$target,ymax = 1)
 
+lda = lda(target ~ dcon[,10], data)
+
+plot(lda, type = "histogram", xlab = "LD1")
+
 # As we can observe, the variance between clusters are not significant.
 ```
 
